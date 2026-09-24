@@ -272,5 +272,9 @@
   "tools.signed": "Onluk (işaretli 16 bit)",
   "tools.binary": "İkilik",
   "tools.octal": "Sekizlik",
-  "tools.char": "Karakter (düşük bayt)"
+  "tools.char": "Karakter (düşük bayt)",
+  "variables.format": "Gösterim",
+  "variables.editHint": "Değiştirmek için değişkene çift tıkla",
+  "variables.editTitle": "{0} düzenle",
+  "variables.editPrompt": "Yeni değer(ler), virgülle ayrılmış. Sayı, ifade ya da bayt değişkenleri için 'metin':"
 }

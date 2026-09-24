@@ -464,16 +464,16 @@ public sealed partial class MainViewModel
                 int address = machine.PhysicalAddress(sym.Segment, (int)sym.Value);
                 if (address < 0) continue;
                 ushort seg = machine.SegmentBases[sym.Segment];
-                string value = FormatVariable(machine.Memory, address, sym.ElementSize, sym.Length);
+                string value = FormatVariable(machine.Memory, address, sym.ElementSize, sym.Length, VariableFormat);
                 string type = sym.ElementSize switch { 1 => "BYTE", 2 => "WORD", 4 => "DWORD", _ => $"{sym.ElementSize}B" };
                 if (sym.Length > 1) type += $"[{sym.Length}]";
-                rows.Add(new VariableRow(sym.Name, $"{seg:X4}:{sym.Value:X4}", type, value));
+                rows.Add(new VariableRow(sym.Name, $"{seg:X4}:{sym.Value:X4}", type, value, address, sym.ElementSize, sym.Length));
             }
         }
         Replace(Variables, rows);
     }
 
-    private static string FormatVariable(Memory memory, int address, int size, int length)
+    private static string FormatVariable(Memory memory, int address, int size, int length, ValueFormat format)
     {
         const int MaxElements = 16;
         int count = Math.Min(length, MaxElements);
@@ -481,26 +481,89 @@ public sealed partial class MainViewModel
         for (int i = 0; i < count; i++)
         {
             int a = address + i * size;
-            parts.Add(size switch
+            long v = size switch
             {
-                1 => memory.Read8(a).ToString("X2"),
-                2 => memory.Read16(a).ToString("X4"),
-                _ => (memory.Read16(a) | (uint)memory.Read16(a + 2) << 16).ToString("X8"),
+                1 => memory.Peek(a),
+                2 => memory.Peek(a) | memory.Peek(a + 1) << 8,
+                _ => (uint)(memory.Peek(a) | memory.Peek(a + 1) << 8 | memory.Peek(a + 2) << 16 | memory.Peek(a + 3) << 24),
+            };
+            parts.Add(format switch
+            {
+                ValueFormat.Decimal => v.ToString(),
+                ValueFormat.Ascii => size == 1 && v is >= 32 and < 127 ? $"'{(char)v}'" : v.ToString(),
+                _ => v.ToString(size == 1 ? "X2" : size == 2 ? "X4" : "X8"),
             });
         }
-        string text = string.Join(" ", parts) + (length > MaxElements ? " ..." : "");
-        if (size == 1 && length > 1)
+        string separator = format == ValueFormat.Ascii && size == 1 ? "" : " ";
+        if (format == ValueFormat.Ascii && size == 1)
+            parts = parts.Select(p => p.StartsWith('\'') ? p[1..^1] : "\u00b7").ToList();
+        return string.Join(separator, parts) + (length > MaxElements ? " ..." : "");
+    }
+
+    /// <summary>
+    /// Writes new values into a variable. The text is a comma-separated list of expressions
+    /// or, for byte variables, quoted strings (e.g. 5, 0FFh, 'abc').
+    /// </summary>
+    public void EditVariable(VariableRow row)
+    {
+        if (Session.IsBusy) return;
+        var loc = Loc.Instance;
+        string? text = _dialogs.AskText(loc.Format("variables.editTitle", row.Name), loc["variables.editPrompt"], "");
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        var bytes = new List<byte>();
+        try
         {
-            var chars = Enumerable.Range(0, count).Select(i => memory.Read8(address + i))
-                .Select(b => b is >= 32 and < 127 ? (char)b : '.');
-            text += $"   \"{new string(chars.ToArray())}\"";
+            foreach (string item in SplitValues(text))
+            {
+                if (row.ElementSize == 1 && item.Length >= 2 && item[0] is '\'' or '"' && item[^1] == item[0])
+                {
+                    bytes.AddRange(item[1..^1].Select(c => (byte)c));
+                    continue;
+                }
+                long v = ExpressionCalculator.Evaluate(item);
+                for (int i = 0; i < row.ElementSize; i++) bytes.Add((byte)(v >> (8 * i)));
+            }
         }
-        else if (length == 1)
+        catch (AsmException e)
         {
-            int v = size == 1 ? memory.Read8(address) : memory.Read16(address);
-            text += $"  ({v})";
+            _dialogs.ShowMessage(BuildService.Describe(new AsmDiagnostic(DiagnosticSeverity.Error, e.Code, e.Args, "", 0, "")));
+            return;
         }
-        return text;
+
+        int max = row.ElementSize * row.Length;
+        lock (Session.Sync)
+        {
+            for (int i = 0; i < bytes.Count && i < max; i++)
+                Session.Machine.Memory.Write8(row.PhysicalAddress + i, bytes[i]);
+        }
+        RefreshAll();
+    }
+
+    private static IEnumerable<string> SplitValues(string text)
+    {
+        var current = new System.Text.StringBuilder();
+        char quote = '\0';
+        foreach (char c in text)
+        {
+            if (quote != '\0')
+            {
+                current.Append(c);
+                if (c == quote) quote = '\0';
+            }
+            else if (c is '\'' or '"')
+            {
+                quote = c;
+                current.Append(c);
+            }
+            else if (c == ',')
+            {
+                yield return current.ToString().Trim();
+                current.Clear();
+            }
+            else current.Append(c);
+        }
+        if (current.ToString().Trim().Length > 0) yield return current.ToString().Trim();
     }
 
     /// <summary>Updates a collection in place so list views keep their scroll position.</summary>

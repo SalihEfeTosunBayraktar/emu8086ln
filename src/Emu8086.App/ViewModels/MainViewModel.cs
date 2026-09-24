@@ -91,6 +91,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IReadOnlyList<RegisterItem> Registers { get; }
     public IReadOnlyList<FlagItem> Flags { get; }
     public IReadOnlyList<LanguageInfo> Languages { get; }
+    public IReadOnlyList<ValueFormat> VariableFormats { get; } = Enum.GetValues<ValueFormat>();
+
+    private ValueFormat _variableFormat = ValueFormat.Hex;
+
+    public ValueFormat VariableFormat
+    {
+        get => _variableFormat;
+        set
+        {
+            if (Set(ref _variableFormat, value)) RefreshVariables();
+        }
+    }
     public IReadOnlyList<string> RecentProjects => SettingsService.Current.RecentProjects.Where(File.Exists).ToList();
 
     public IReadOnlyList<ExampleItem> Examples =>

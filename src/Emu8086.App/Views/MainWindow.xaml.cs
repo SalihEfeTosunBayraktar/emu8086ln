@@ -250,6 +250,11 @@ public partial class MainWindow : Window, IDialogService
         if (sender is ListBox { SelectedItem: DiagnosticItem d }) _vm.GoToDiagnosticCommand.Execute(d);
     }
 
+    private void OnVariableDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ListBox { SelectedItem: VariableRow row }) _vm.EditVariable(row);
+    }
+
     private void OnRegisterKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter || sender is not TextBox box) return;

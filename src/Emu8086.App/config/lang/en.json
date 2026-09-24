@@ -272,5 +272,9 @@
   "tools.signed": "Decimal (signed 16 bit)",
   "tools.binary": "Binary",
   "tools.octal": "Octal",
-  "tools.char": "Character (low byte)"
+  "tools.char": "Character (low byte)",
+  "variables.format": "Show as",
+  "variables.editHint": "Double-click a variable to change it",
+  "variables.editTitle": "Edit {0}",
+  "variables.editPrompt": "New value(s), comma separated. Numbers, expressions or 'text' for byte variables:"
 }

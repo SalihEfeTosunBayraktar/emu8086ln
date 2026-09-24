@@ -272,5 +272,9 @@
   "tools.signed": "Dezimal (mit Vorzeichen, 16 Bit)",
   "tools.binary": "Binär",
   "tools.octal": "Oktal",
-  "tools.char": "Zeichen (unteres Byte)"
+  "tools.char": "Zeichen (unteres Byte)",
+  "variables.format": "Anzeigen als",
+  "variables.editHint": "Doppelklick zum Ändern",
+  "variables.editTitle": "{0} bearbeiten",
+  "variables.editPrompt": "Neue(r) Wert(e), durch Komma getrennt. Zahlen, Ausdrücke oder 'Text' für Byte-Variablen:"
 }

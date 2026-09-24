@@ -31,7 +31,7 @@ public sealed class RegisterItem : ObservableObject
             OnPropertyChanged(nameof(Text));
             OnPropertyChanged(nameof(High));
             OnPropertyChanged(nameof(Low));
-            OnPropertyChanged(nameof(Decimal));
+            OnPropertyChanged(nameof(Details));
         }
     }
 
@@ -41,7 +41,17 @@ public sealed class RegisterItem : ObservableObject
         set => Set(ref _changed, value);
     }
 
-    public string Decimal => $"{_value} / {(short)_value}";
+    /// <summary>The value in every base, shown as the register's tooltip.</summary>
+    public string Details
+    {
+        get
+        {
+            var loc = Emu8086.App.Services.Loc.Instance;
+            string bits = Convert.ToString(_value, 2).PadLeft(16, '0');
+            return $"{Name}\n{loc["tools.hex"]}: {_value:X4}h\n{loc["tools.unsigned"]}: {_value}\n"
+                   + $"{loc["tools.signed"]}: {(short)_value}\n{loc["tools.binary"]}: {bits[..8]} {bits[8..]}b";
+        }
+    }
 
     public string Text
     {
@@ -116,7 +126,9 @@ public sealed record StackRow(string Address, string Value, bool IsTop);
 
 public sealed record DisassemblyRow(int Address, string AddressText, string Bytes, string Text, bool IsCurrent, bool HasBreakpoint);
 
-public sealed record VariableRow(string Name, string Address, string Type, string Value);
+public sealed record VariableRow(string Name, string Address, string Type, string Value, int PhysicalAddress, int ElementSize, int Length);
+
+public enum ValueFormat { Hex, Decimal, Ascii }
 
 public sealed record DiagnosticItem(DiagnosticSeverity Severity, string File, int Line, string Message)
 {

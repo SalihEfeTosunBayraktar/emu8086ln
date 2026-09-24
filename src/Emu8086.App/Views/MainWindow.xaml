@@ -467,7 +467,7 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="2,2" ToolTip="{Binding Decimal}">
+                                    <StackPanel Orientation="Horizontal" Margin="2,2" ToolTip="{Binding Details}">
                                         <TextBlock Text="{Binding Name}" Width="24" VerticalAlignment="Center" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource Fg.Secondary}" Style="{StaticResource Mono}"/>
                                         <StackPanel Orientation="Horizontal" Visibility="{Binding Splittable, Converter={StaticResource BoolToVis}}">
@@ -588,8 +588,15 @@
                             </ListBox>
                         </TabItem>
                         <TabItem Header="{svc:Tr panel.variables}">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,8,8,0">
+                                    <TextBlock Text="{svc:Tr variables.format}" VerticalAlignment="Center" Foreground="{DynamicResource Fg.Secondary}"/>
+                                    <ComboBox ItemsSource="{Binding VariableFormats}" SelectedItem="{Binding VariableFormat}" Width="110" Margin="8,0,0,0"/>
+                                    <TextBlock Text="{svc:Tr variables.editHint}" VerticalAlignment="Center" Margin="12,0,0,0"
+                                               Foreground="{DynamicResource Fg.Muted}" FontSize="11"/>
+                                </StackPanel>
                             <Grid>
-                                <ListBox ItemsSource="{Binding Variables}" Margin="6">
+                                <ListBox ItemsSource="{Binding Variables}" Margin="6" MouseDoubleClick="OnVariableDoubleClick">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Margin="0,2">
@@ -606,6 +613,7 @@
                                 <TextBlock Text="{svc:Tr variables.empty}" Foreground="{DynamicResource Fg.Muted}" HorizontalAlignment="Center"
                                            VerticalAlignment="Center" Visibility="{Binding Variables.Count, Converter={StaticResource CountToVis}, ConverterParameter=invert}"/>
                             </Grid>
+                            </DockPanel>
                         </TabItem>
                         <TabItem Header="{svc:Tr panel.devices}" x:Name="DevicesTab">
                             <ScrollViewer x:Name="DevicesScroll" VerticalScrollBarVisibility="Auto">
