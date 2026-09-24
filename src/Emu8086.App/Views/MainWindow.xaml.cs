@@ -28,6 +28,7 @@ public partial class MainWindow : Window, IDialogService
     private TextBox? _printerBox;
     private Window? _screenWindow;
     private CpuVisualizerWindow? _visualizer;
+    private ToolsWindow? _tools;
 
     public MainWindow()
     {
@@ -384,6 +385,21 @@ public partial class MainWindow : Window, IDialogService
         _visualizer = new CpuVisualizerWindow(this, _vm);
         _visualizer.Closed += (_, _) => _visualizer = null;
         _visualizer.Show();
+    }
+
+    private void OnConverterClick(object sender, RoutedEventArgs e) => ShowTools(ascii: false);
+    private void OnAsciiClick(object sender, RoutedEventArgs e) => ShowTools(ascii: true);
+
+    private void ShowTools(bool ascii)
+    {
+        if (_tools != null)
+        {
+            _tools.Activate(ascii);
+            return;
+        }
+        _tools = new ToolsWindow(this);
+        _tools.Closed += (_, _) => _tools = null;
+        _tools.Show(ascii);
     }
 
     private void OnSettingsClick(object sender, RoutedEventArgs e) => new SettingsWindow(this, _vm).ShowDialog();

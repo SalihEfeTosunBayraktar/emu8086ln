@@ -259,5 +259,18 @@
   "output.listing": "Listing {0} dosyasına, semboller {1} dosyasına yazıldı",
   "cmd.openExecutable": "Çalıştırılabilir dosya aç (.com / .exe / .bin)...",
   "filter.executable": "Çalıştırılabilir dosya",
-  "output.binaryLoaded": "{0} {1} olarak yüklendi ({2} bayt); disassembly'si editörde açık."
+  "output.binaryLoaded": "{0} {1} olarak yüklendi ({2} bayt); disassembly'si editörde açık.",
+  "menu.tools": "Araçlar",
+  "cmd.converter": "Sayı dönüştürücü / hesap makinesi",
+  "cmd.asciiTable": "ASCII tablosu",
+  "tools.title": "Araçlar",
+  "tools.converter": "Dönüştürücü / hesap makinesi",
+  "tools.ascii": "ASCII tablosu",
+  "tools.inputHint": "Assembly yazımıyla sayı veya ifade, örn. 0FFh, 1010b, 'A', 12 * 3 + 7, 80h OR 1",
+  "tools.hex": "Onaltılık (hex)",
+  "tools.unsigned": "Onluk (işaretsiz)",
+  "tools.signed": "Onluk (işaretli 16 bit)",
+  "tools.binary": "İkilik",
+  "tools.octal": "Sekizlik",
+  "tools.char": "Karakter (düşük bayt)"
 }

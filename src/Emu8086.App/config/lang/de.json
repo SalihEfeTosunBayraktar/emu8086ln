@@ -259,5 +259,18 @@
   "output.listing": "Listing in {0}, Symbole in {1} geschrieben",
   "cmd.openExecutable": "Programmdatei öffnen (.com / .exe / .bin)...",
   "filter.executable": "Programmdatei",
-  "output.binaryLoaded": "{0} als {1} geladen ({2} Bytes); die Disassemblierung ist im Editor geöffnet."
+  "output.binaryLoaded": "{0} als {1} geladen ({2} Bytes); die Disassemblierung ist im Editor geöffnet.",
+  "menu.tools": "Werkzeuge",
+  "cmd.converter": "Zahlenumrechner / Rechner",
+  "cmd.asciiTable": "ASCII-Tabelle",
+  "tools.title": "Werkzeuge",
+  "tools.converter": "Umrechner / Rechner",
+  "tools.ascii": "ASCII-Tabelle",
+  "tools.inputHint": "Zahl oder Ausdruck in Assembler-Schreibweise, z. B. 0FFh, 1010b, 'A', 12 * 3 + 7, 80h OR 1",
+  "tools.hex": "Hexadezimal",
+  "tools.unsigned": "Dezimal (ohne Vorzeichen)",
+  "tools.signed": "Dezimal (mit Vorzeichen, 16 Bit)",
+  "tools.binary": "Binär",
+  "tools.octal": "Oktal",
+  "tools.char": "Zeichen (unteres Byte)"
 }
