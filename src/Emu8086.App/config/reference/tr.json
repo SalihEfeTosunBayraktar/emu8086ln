@@ -630,5 +630,101 @@
   "description": "Etiketin offset'ini (segment içi adres) veya segmentini verir.",
   "flags": "-",
   "example": "mov dx, offset msg\nmov ax, seg msg"
+ },
+ {
+  "name": "AX (AH, AL)",
+  "category": "Registerlar",
+  "syntax": "AX",
+  "description": "Akümülatör: aritmetik, MUL/DIV, IN/OUT ve çoğu kesme servisinde kullanılır. AH ve AL 8 bitlik yarılarıdır.",
+  "flags": "-",
+  "example": "mov ax, 4C00h\nint 21h"
+ },
+ {
+  "name": "BX (BH, BL)",
+  "category": "Registerlar",
+  "syntax": "BX",
+  "description": "Taban registerı: [BX] ile bellek adreslemede kullanılabilir.",
+  "flags": "-",
+  "example": "mov bx, offset table\nmov al, [bx]"
+ },
+ {
+  "name": "CX (CH, CL)",
+  "category": "Registerlar",
+  "syntax": "CX",
+  "description": "Sayaç: LOOP, REP ve kaydırma sayısı (CL) için kullanılır.",
+  "flags": "-",
+  "example": "mov cx, 10\nnext: loop next"
+ },
+ {
+  "name": "DX (DH, DL)",
+  "category": "Registerlar",
+  "syntax": "DX",
+  "description": "Veri registerı: 16 bit MUL/DIV sonucunun üst kelimesi, port numarası (IN/OUT DX) ve DOS metin adresleri.",
+  "flags": "-",
+  "example": "mov dx, offset msg\nmov ah, 9\nint 21h"
+ },
+ {
+  "name": "SI",
+  "category": "Registerlar",
+  "syntax": "SI",
+  "description": "Kaynak indeksi: string komutlarında kaynak (DS:SI) ve bellek adresleme.",
+  "flags": "-",
+  "example": "lodsb"
+ },
+ {
+  "name": "DI",
+  "category": "Registerlar",
+  "syntax": "DI",
+  "description": "Hedef indeksi: string komutlarında hedef (ES:DI) ve bellek adresleme.",
+  "flags": "-",
+  "example": "stosb"
+ },
+ {
+  "name": "BP",
+  "category": "Registerlar",
+  "syntax": "BP",
+  "description": "Taban işaretçisi: yığındaki parametre ve yerel değişkenlere [BP+n] ile erişim (SS segmenti).",
+  "flags": "-",
+  "example": "push bp\nmov bp, sp\nmov ax, [bp+4]"
+ },
+ {
+  "name": "SP",
+  "category": "Registerlar",
+  "syntax": "SP",
+  "description": "Yığın işaretçisi: yığının tepesi (SS:SP). PUSH azaltır, POP artırır.",
+  "flags": "-",
+  "example": "push ax   ; SP = SP - 2"
+ },
+ {
+  "name": "CS",
+  "category": "Registerlar",
+  "syntax": "CS",
+  "description": "Kod segmenti: çalışan komutlar CS:IP adresinden okunur.",
+  "flags": "-",
+  "example": "push cs\npop ds"
+ },
+ {
+  "name": "DS",
+  "category": "Registerlar",
+  "syntax": "DS",
+  "description": "Veri segmenti: çoğu bellek erişimi DS'yi kullanır.",
+  "flags": "-",
+  "example": "mov ax, data\nmov ds, ax"
+ },
+ {
+  "name": "ES",
+  "category": "Registerlar",
+  "syntax": "ES",
+  "description": "Ek segment: string komutlarının hedefi (ES:DI) ve ekstra veri alanı.",
+  "flags": "-",
+  "example": "mov ax, 0B800h\nmov es, ax"
+ },
+ {
+  "name": "SS",
+  "category": "Registerlar",
+  "syntax": "SS",
+  "description": "Yığın segmenti: PUSH/POP/CALL/RET SS:SP üzerinden çalışır.",
+  "flags": "-",
+  "example": "mov ax, stack\nmov ss, ax"
  }
 ]

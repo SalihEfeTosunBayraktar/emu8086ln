@@ -163,10 +163,20 @@ public partial class EditorView : UserControl
         };
         _completion.CompletionList.ListBox.Background = ThemeService.Resource<Brush>("Bg.Panel2");
         _completion.CompletionList.ListBox.Foreground = ThemeService.Resource<Brush>("Fg.Primary");
+        _completion.CompletionList.ListBox.MouseMove += OnCompletionMouseMove;
         foreach (var c in candidates)
             _completion.CompletionList.CompletionData.Add(new CompletionItem(lower && Keywords.Contains(c) ? c.ToLowerInvariant() : c));
         _completion.Closed += (_, _) => _completion = null;
         _completion.Show();
+    }
+
+    /// <summary>Hovering an item selects it, so its help balloon follows the mouse.</summary>
+    private void OnCompletionMouseMove(object sender, MouseEventArgs e)
+    {
+        if (sender is not ListBox list) return;
+        var element = list.InputHitTest(e.GetPosition(list)) as DependencyObject;
+        while (element != null && element is not ListBoxItem) element = VisualTreeHelper.GetParent(element);
+        if (element is ListBoxItem item && !item.IsSelected) item.IsSelected = true;
     }
 
     private (int Start, string Prefix) CurrentWord()
@@ -190,16 +200,54 @@ public partial class EditorView : UserControl
                 RegexOptions.Multiline | RegexOptions.IgnoreCase)
             .Select(m => m.Groups[1].Value);
 
+    /// <summary>One suggestion; its description (the help balloon) is built from the reference on demand.</summary>
     private sealed class CompletionItem(string text) : ICompletionData
     {
         public System.Windows.Media.ImageSource? Image => null;
         public string Text { get; } = text;
         public object Content => Text;
-        public object? Description => null;
+        public object? Description => SettingsService.Current.CompletionHelp ? HelpBalloon(Text) : null;
         public double Priority => 0;
 
         public void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs) =>
             textArea.Document.Replace(completionSegment, Text);
+    }
+
+    private static UIElement? HelpBalloon(string keyword)
+    {
+        var entry = ReferenceService.Find(keyword);
+        if (entry == null) return null;
+        var mono = (FontFamily)Application.Current.FindResource("Font.Mono");
+        var panel = new StackPanel { MaxWidth = 380, Margin = new Thickness(2) };
+
+        var title = new TextBlock { Text = entry.Name, FontWeight = FontWeights.SemiBold, FontSize = 14 };
+        panel.Children.Add(title);
+        var category = new TextBlock { Text = entry.Category, FontSize = 11, Margin = new Thickness(0, 0, 0, 6) };
+        category.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
+        panel.Children.Add(category);
+        panel.Children.Add(new TextBlock { Text = entry.Description, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 6) });
+
+        void Code(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            var box = new Border
+            {
+                Padding = new Thickness(8, 5, 8, 5), CornerRadius = new CornerRadius(5), Margin = new Thickness(0, 2, 0, 4),
+                Child = new TextBlock { Text = text, FontFamily = mono, FontSize = 12, TextWrapping = TextWrapping.Wrap },
+            };
+            box.SetResourceReference(Border.BackgroundProperty, "Bg.Editor");
+            panel.Children.Add(box);
+        }
+
+        Code(entry.Syntax);
+        Code(entry.Example);
+        if (!string.IsNullOrWhiteSpace(entry.Flags) && entry.Flags != "-")
+        {
+            var flags = new TextBlock { Text = Loc.Instance["reference.flags"] + ": " + entry.Flags, FontSize = 11, TextWrapping = TextWrapping.Wrap };
+            flags.SetResourceReference(TextBlock.ForegroundProperty, "Fg.Muted");
+            panel.Children.Add(flags);
+        }
+        return panel;
     }
 
     #endregion

@@ -18,8 +18,14 @@ Source-compatible with emu8086 programs (`#make_COM#`, `emu8086.inc`, virtual de
 - **CPU architecture visualizer (F12)** – replays every instruction inside the BIU / EU
   (fetch, decode, execute, write back), showing address calculation, ALU work and data flow with explanations.
 - **Virtual devices** – traffic lights, stepper motor, LED display, thermometer/heater, robot, printer, port monitor.
-- **IDE** – projects and templates, tabs, syntax highlighting, auto-completion, instruction reference,
-  18 example programs, light/dark theme, English / Türkçe / Deutsch UI, adjustable fonts and sizes.
+- **IDE** – projects and templates, tabs, syntax highlighting, auto-completion with help balloons,
+  find / replace (Ctrl+F, Ctrl+H), go to line (Ctrl+G), instruction reference, 28 example programs,
+  light/dark theme, English / Türkçe / Deutsch UI, adjustable fonts and sizes.
+- **Files and tools** – listing (.lst) and symbol table export, open and step through `.com` / `.exe` / `.bin`
+  files without source, emu8086 `#AX=...#` register presets, number converter / calculator, ASCII table.
+- **Hardware extras** – virtual 1.44 MB floppy with INT 13h (write a program to it and boot from it),
+  optional `emu8086.io` shared port file so external programs can act as devices.
+- **Updates** – shows the version, checks GitHub Releases on request (or at startup if enabled) and installs updates.
 
 ## Download
 

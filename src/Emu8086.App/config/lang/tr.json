@@ -285,5 +285,6 @@
   "floppy.written": "{0} sektör, {1}. sektörden itibaren {2} dosyasına yazıldı",
   "settings.emulator": "EMÜLATÖR",
   "settings.externalIo": "Harici cihazlar: portları emu8086.io dosyasına yansıt",
-  "settings.externalIoHint": "Dahili cihazı olmayan portlar {0} dosyasından okunur ve oraya yazılır (port başına bir bayt); böylece başka programlar cihaz gibi davranabilir."
+  "settings.externalIoHint": "Dahili cihazı olmayan portlar {0} dosyasından okunur ve oraya yazılır (port başına bir bayt); böylece başka programlar cihaz gibi davranabilir.",
+  "settings.completionHelp": "Önerilerde yardım balonu göster (açıklama ve örnek)"
 }

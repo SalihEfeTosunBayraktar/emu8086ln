@@ -67,6 +67,7 @@ public sealed class SettingsWindow
         Check(loc["settings.wordWrap"], S.WordWrap, v => S.WordWrap = v);
         Check(loc["settings.currentLine"], S.HighlightCurrentLine, v => S.HighlightCurrentLine = v);
         Check(loc["settings.autoComplete"], S.AutoComplete, v => S.AutoComplete = v);
+        Check(loc["settings.completionHelp"], S.CompletionHelp, v => S.CompletionHelp = v);
 
         Section(loc["settings.appearance"]);
         Row(loc["settings.uiFontSize"], SliderWithValue(MinUiFontSize, MaxUiFontSize, S.UiFontSize, v => S.UiFontSize = v));

@@ -630,5 +630,101 @@
   "description": "Gives the offset (address inside its segment) or the segment of a label.",
   "flags": "-",
   "example": "mov dx, offset msg\nmov ax, seg msg"
+ },
+ {
+  "name": "AX (AH, AL)",
+  "category": "Registers",
+  "syntax": "AX",
+  "description": "Accumulator: used by arithmetic, MUL/DIV, IN/OUT and most interrupt services. AH and AL are its 8-bit halves.",
+  "flags": "-",
+  "example": "mov ax, 4C00h\nint 21h"
+ },
+ {
+  "name": "BX (BH, BL)",
+  "category": "Registers",
+  "syntax": "BX",
+  "description": "Base register: can address memory as [BX].",
+  "flags": "-",
+  "example": "mov bx, offset table\nmov al, [bx]"
+ },
+ {
+  "name": "CX (CH, CL)",
+  "category": "Registers",
+  "syntax": "CX",
+  "description": "Counter: used by LOOP, REP and as the shift count (CL).",
+  "flags": "-",
+  "example": "mov cx, 10\nnext: loop next"
+ },
+ {
+  "name": "DX (DH, DL)",
+  "category": "Registers",
+  "syntax": "DX",
+  "description": "Data register: high word of 16-bit MUL/DIV, port number for IN/OUT DX, DOS string addresses.",
+  "flags": "-",
+  "example": "mov dx, offset msg\nmov ah, 9\nint 21h"
+ },
+ {
+  "name": "SI",
+  "category": "Registers",
+  "syntax": "SI",
+  "description": "Source index: source of string instructions (DS:SI) and memory addressing.",
+  "flags": "-",
+  "example": "lodsb"
+ },
+ {
+  "name": "DI",
+  "category": "Registers",
+  "syntax": "DI",
+  "description": "Destination index: destination of string instructions (ES:DI) and memory addressing.",
+  "flags": "-",
+  "example": "stosb"
+ },
+ {
+  "name": "BP",
+  "category": "Registers",
+  "syntax": "BP",
+  "description": "Base pointer: accesses stack parameters and locals as [BP+n] (SS segment).",
+  "flags": "-",
+  "example": "push bp\nmov bp, sp\nmov ax, [bp+4]"
+ },
+ {
+  "name": "SP",
+  "category": "Registers",
+  "syntax": "SP",
+  "description": "Stack pointer: top of the stack (SS:SP). PUSH decreases it, POP increases it.",
+  "flags": "-",
+  "example": "push ax   ; SP = SP - 2"
+ },
+ {
+  "name": "CS",
+  "category": "Registers",
+  "syntax": "CS",
+  "description": "Code segment: instructions are fetched from CS:IP.",
+  "flags": "-",
+  "example": "push cs\npop ds"
+ },
+ {
+  "name": "DS",
+  "category": "Registers",
+  "syntax": "DS",
+  "description": "Data segment: most memory accesses use DS.",
+  "flags": "-",
+  "example": "mov ax, data\nmov ds, ax"
+ },
+ {
+  "name": "ES",
+  "category": "Registers",
+  "syntax": "ES",
+  "description": "Extra segment: destination of string instructions (ES:DI) and extra data.",
+  "flags": "-",
+  "example": "mov ax, 0B800h\nmov es, ax"
+ },
+ {
+  "name": "SS",
+  "category": "Registers",
+  "syntax": "SS",
+  "description": "Stack segment: PUSH/POP/CALL/RET work on SS:SP.",
+  "flags": "-",
+  "example": "mov ax, stack\nmov ss, ax"
  }
 ]

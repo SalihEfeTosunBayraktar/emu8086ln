@@ -1,5 +1,3 @@
-using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -7,9 +5,7 @@ using Emu8086.App.Services;
 
 namespace Emu8086.App.Views;
 
-public sealed record ReferenceEntry(string Name, string Category, string Syntax, string Description, string Flags, string Example);
-
-/// <summary>Searchable instruction / interrupt reference loaded from config/reference/&lt;lang&gt;.json.</summary>
+/// <summary>Searchable instruction / interrupt reference (see <see cref="ReferenceService"/>).</summary>
 public sealed class ReferenceWindow
 {
     private readonly Window _window;
@@ -20,7 +16,7 @@ public sealed class ReferenceWindow
 
     public ReferenceWindow()
     {
-        _entries = Load();
+        _entries = ReferenceService.Entries.ToList();
         var loc = Loc.Instance;
 
         _search.TextChanged += (_, _) => Filter();
@@ -62,25 +58,6 @@ public sealed class ReferenceWindow
     }
 
     public void Show() => _window.Show();
-
-    private static List<ReferenceEntry> Load()
-    {
-        foreach (var lang in new[] { Loc.Instance.CurrentCode, "en" })
-        {
-            string path = Path.Combine(AppPaths.ConfigDirectory, "reference", lang + ".json");
-            if (!File.Exists(path)) continue;
-            try
-            {
-                return JsonSerializer.Deserialize<List<ReferenceEntry>>(File.ReadAllText(path),
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
-            }
-            catch (JsonException)
-            {
-                return [];
-            }
-        }
-        return [];
-    }
 
     private void Filter()
     {

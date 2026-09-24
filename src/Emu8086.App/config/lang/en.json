@@ -285,5 +285,6 @@
   "floppy.written": "{0} sector(s) written from sector {1} to {2}",
   "settings.emulator": "EMULATOR",
   "settings.externalIo": "External devices: mirror ports to emu8086.io",
-  "settings.externalIoHint": "Ports without a built-in device are read from and written to {0} (one byte per port), so other programs can act as devices."
+  "settings.externalIoHint": "Ports without a built-in device are read from and written to {0} (one byte per port), so other programs can act as devices.",
+  "settings.completionHelp": "Show help (description and example) for suggestions"
 }

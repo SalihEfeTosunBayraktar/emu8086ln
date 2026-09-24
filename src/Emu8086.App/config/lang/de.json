@@ -285,5 +285,6 @@
   "floppy.written": "{0} Sektor(en) ab Sektor {1} in {2} geschrieben",
   "settings.emulator": "EMULATOR",
   "settings.externalIo": "Externe Geräte: Ports in emu8086.io spiegeln",
-  "settings.externalIoHint": "Ports ohne eingebautes Gerät werden in {0} gelesen und geschrieben (ein Byte pro Port), damit andere Programme als Geräte dienen können."
+  "settings.externalIoHint": "Ports ohne eingebautes Gerät werden in {0} gelesen und geschrieben (ein Byte pro Port), damit andere Programme als Geräte dienen können.",
+  "settings.completionHelp": "Hilfe (Beschreibung und Beispiel) zu Vorschlägen anzeigen"
 }

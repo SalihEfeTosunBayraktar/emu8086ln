@@ -18,6 +18,8 @@ public sealed class AppSettings
     public int IndentSize { get; set; } = 4;
     public bool HighlightCurrentLine { get; set; } = true;
     public bool AutoComplete { get; set; } = true;
+    /// <summary>Show an explanation with syntax and example next to completion suggestions.</summary>
+    public bool CompletionHelp { get; set; } = true;
     /// <summary>Duration of one phase in the CPU visualizer animation (ms).</summary>
     public int VisualizerPhaseMs { get; set; } = 650;
     public bool CheckForUpdates { get; set; }
@@ -57,6 +59,7 @@ public static class SettingsService
         Current.IndentSize = defaults.IndentSize;
         Current.HighlightCurrentLine = defaults.HighlightCurrentLine;
         Current.AutoComplete = defaults.AutoComplete;
+        Current.CompletionHelp = defaults.CompletionHelp;
         NotifyChanged();
     }
 
