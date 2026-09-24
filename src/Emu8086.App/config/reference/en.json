@@ -1,0 +1,634 @@
+[
+ {
+  "name": "MOV",
+  "category": "Data transfer",
+  "syntax": "MOV hedef, kaynak | MOV dest, src",
+  "description": "Copies the source value into the destination. Memory-to-memory moves and loading a constant into a segment register are not allowed.",
+  "flags": "-",
+  "example": "mov ax, 1234h\nmov [bx], al\nmov ds, ax"
+ },
+ {
+  "name": "XCHG",
+  "category": "Data transfer",
+  "syntax": "XCHG op1, op2",
+  "description": "Exchanges the values of the two operands.",
+  "flags": "-",
+  "example": "xchg ax, bx"
+ },
+ {
+  "name": "PUSH",
+  "category": "Data transfer",
+  "syntax": "PUSH kaynak (16 bit)",
+  "description": "SP is decreased by 2 and the value is stored at SS:SP (top of the stack).",
+  "flags": "-",
+  "example": "push ax\npush ds"
+ },
+ {
+  "name": "POP",
+  "category": "Data transfer",
+  "syntax": "POP hedef (16 bit)",
+  "description": "The word at SS:SP is loaded into the destination and SP is increased by 2.",
+  "flags": "-",
+  "example": "pop bx"
+ },
+ {
+  "name": "PUSHF / POPF",
+  "category": "Data transfer",
+  "syntax": "PUSHF | POPF",
+  "description": "Pushes the FLAGS register onto the stack / pops it back.",
+  "flags": "POPF: hepsi / all",
+  "example": "pushf\npopf"
+ },
+ {
+  "name": "PUSHA / POPA",
+  "category": "Data transfer",
+  "syntax": "PUSHA | POPA",
+  "description": "(80186) Pushes / pops all general registers (AX, CX, DX, BX, SP, BP, SI, DI).",
+  "flags": "-",
+  "example": "pusha\n; ...\npopa"
+ },
+ {
+  "name": "LEA",
+  "category": "Data transfer",
+  "syntax": "LEA reg16, bellek",
+  "description": "Loads the effective address (offset) of a memory operand into a register; memory is not read.",
+  "flags": "-",
+  "example": "lea si, msg\nlea bx, [bp+si+4]"
+ },
+ {
+  "name": "LDS / LES",
+  "category": "Data transfer",
+  "syntax": "LDS reg16, bellek | LES reg16, bellek",
+  "description": "Reads a 32-bit far pointer: the offset goes into the register, the segment into DS (LDS) or ES (LES).",
+  "flags": "-",
+  "example": "les di, far_ptr"
+ },
+ {
+  "name": "LAHF / SAHF",
+  "category": "Data transfer",
+  "syntax": "LAHF | SAHF",
+  "description": "Copies the low byte of FLAGS into AH (LAHF) or loads it from AH (SAHF).",
+  "flags": "SAHF: SF ZF AF PF CF",
+  "example": "lahf"
+ },
+ {
+  "name": "XLAT",
+  "category": "Data transfer",
+  "syntax": "XLAT / XLATB",
+  "description": "AL = [DS:BX + AL]. Used to translate a value through a table.",
+  "flags": "-",
+  "example": "lea bx, table\nmov al, 3\nxlat"
+ },
+ {
+  "name": "IN / OUT",
+  "category": "Data transfer",
+  "syntax": "IN AL|AX, port | OUT port, AL|AX (port: sabit 0-255 veya DX)",
+  "description": "Reads from (IN) or writes to (OUT) an I/O port. The virtual devices use these ports.",
+  "flags": "-",
+  "example": "in al, 125\nmov dx, 3F8h\nout dx, al"
+ },
+ {
+  "name": "CBW / CWD",
+  "category": "Data transfer",
+  "syntax": "CBW | CWD",
+  "description": "Sign-extends: CBW turns AL into AX, CWD turns AX into DX:AX.",
+  "flags": "-",
+  "example": "mov al, -5\ncbw   ; AX = FFFBh"
+ },
+ {
+  "name": "ADD",
+  "category": "Arithmetic",
+  "syntax": "ADD hedef, kaynak",
+  "description": "dest = dest + src.",
+  "flags": "OF SF ZF AF PF CF",
+  "example": "add ax, bx\nadd byte ptr [si], 5"
+ },
+ {
+  "name": "ADC",
+  "category": "Arithmetic",
+  "syntax": "ADC hedef, kaynak",
+  "description": "dest = dest + src + CF. Carries between words in multi-word additions.",
+  "flags": "OF SF ZF AF PF CF",
+  "example": "add ax, cx\nadc dx, bx   ; 32 bit toplama"
+ },
+ {
+  "name": "SUB",
+  "category": "Arithmetic",
+  "syntax": "SUB hedef, kaynak",
+  "description": "dest = dest - src.",
+  "flags": "OF SF ZF AF PF CF",
+  "example": "sub ax, 10"
+ },
+ {
+  "name": "SBB",
+  "category": "Arithmetic",
+  "syntax": "SBB hedef, kaynak",
+  "description": "dest = dest - src - CF.",
+  "flags": "OF SF ZF AF PF CF",
+  "example": "sbb dx, 0"
+ },
+ {
+  "name": "CMP",
+  "category": "Arithmetic",
+  "syntax": "CMP op1, op2",
+  "description": "Computes op1 - op2 without storing the result; only the flags change. Usually followed by a conditional jump.",
+  "flags": "OF SF ZF AF PF CF",
+  "example": "cmp al, 'A'\njb less"
+ },
+ {
+  "name": "INC / DEC",
+  "category": "Arithmetic",
+  "syntax": "INC hedef | DEC hedef",
+  "description": "Adds / subtracts 1. CF is not affected.",
+  "flags": "OF SF ZF AF PF (CF değişmez / unchanged)",
+  "example": "inc cx\ndec byte ptr [di]"
+ },
+ {
+  "name": "NEG",
+  "category": "Arithmetic",
+  "syntax": "NEG hedef",
+  "description": "Two's complement: dest = 0 - dest.",
+  "flags": "OF SF ZF AF PF CF",
+  "example": "neg ax"
+ },
+ {
+  "name": "MUL",
+  "category": "Arithmetic",
+  "syntax": "MUL kaynak",
+  "description": "Unsigned multiply. 8-bit: AX = AL × src. 16-bit: DX:AX = AX × src.",
+  "flags": "OF CF",
+  "example": "mov al, 12\nmov bl, 10\nmul bl   ; AX = 120"
+ },
+ {
+  "name": "IMUL",
+  "category": "Arithmetic",
+  "syntax": "IMUL kaynak | IMUL reg16, r/m, sabit (80186)",
+  "description": "Signed multiply; uses the same registers as MUL.",
+  "flags": "OF CF",
+  "example": "imul bx"
+ },
+ {
+  "name": "DIV",
+  "category": "Arithmetic",
+  "syntax": "DIV kaynak",
+  "description": "Unsigned divide. 8-bit: AL = AX / src, AH = remainder. 16-bit: AX = DX:AX / src, DX = remainder. Division by zero or overflow raises a divide error.",
+  "flags": "tanımsız / undefined",
+  "example": "mov ax, 100\nmov bl, 7\ndiv bl   ; AL=14, AH=2"
+ },
+ {
+  "name": "IDIV",
+  "category": "Arithmetic",
+  "syntax": "IDIV kaynak",
+  "description": "Signed divide; uses the same registers as DIV.",
+  "flags": "tanımsız / undefined",
+  "example": "cwd\nidiv bx"
+ },
+ {
+  "name": "DAA / DAS",
+  "category": "Arithmetic",
+  "syntax": "DAA | DAS",
+  "description": "Adjusts AL after packed BCD addition / subtraction.",
+  "flags": "SF ZF AF PF CF",
+  "example": "add al, bl\ndaa"
+ },
+ {
+  "name": "AAA / AAS / AAM / AAD",
+  "category": "Arithmetic",
+  "syntax": "AAA | AAS | AAM | AAD",
+  "description": "Adjustments for unpacked (ASCII) BCD arithmetic. AAM splits AL into two decimal digits.",
+  "flags": "AF CF (AAM/AAD: SF ZF PF)",
+  "example": "mov al, 73\naam   ; AH=7, AL=3"
+ },
+ {
+  "name": "AND",
+  "category": "Logic and shifts",
+  "syntax": "AND hedef, kaynak",
+  "description": "Bitwise AND. Used to clear (mask) bits.",
+  "flags": "SF ZF PF (CF=OF=0)",
+  "example": "and al, 0Fh   ; üst 4 biti sıfırla"
+ },
+ {
+  "name": "OR",
+  "category": "Logic and shifts",
+  "syntax": "OR hedef, kaynak",
+  "description": "Bitwise OR. Used to set bits.",
+  "flags": "SF ZF PF (CF=OF=0)",
+  "example": "or al, 20h"
+ },
+ {
+  "name": "XOR",
+  "category": "Logic and shifts",
+  "syntax": "XOR hedef, kaynak",
+  "description": "Bitwise exclusive OR. Used to toggle bits or zero a register.",
+  "flags": "SF ZF PF (CF=OF=0)",
+  "example": "xor ax, ax   ; AX = 0"
+ },
+ {
+  "name": "NOT",
+  "category": "Logic and shifts",
+  "syntax": "NOT hedef",
+  "description": "Inverts every bit (one's complement).",
+  "flags": "-",
+  "example": "not al"
+ },
+ {
+  "name": "TEST",
+  "category": "Logic and shifts",
+  "syntax": "TEST op1, op2",
+  "description": "Performs AND without storing the result; only the flags change.",
+  "flags": "SF ZF PF (CF=OF=0)",
+  "example": "test al, 1\njz even"
+ },
+ {
+  "name": "SHL / SAL",
+  "category": "Logic and shifts",
+  "syntax": "SHL hedef, 1|CL|sabit",
+  "description": "Shifts bits left; the bit shifted out goes to CF. Each shift multiplies by 2.",
+  "flags": "OF SF ZF PF CF",
+  "example": "shl ax, 1   ; AX * 2"
+ },
+ {
+  "name": "SHR",
+  "category": "Logic and shifts",
+  "syntax": "SHR hedef, 1|CL|sabit",
+  "description": "Shifts bits right, filling with 0 (unsigned divide by 2).",
+  "flags": "OF SF ZF PF CF",
+  "example": "shr ax, 1   ; işaretsiz / 2"
+ },
+ {
+  "name": "SAR",
+  "category": "Logic and shifts",
+  "syntax": "SAR hedef, 1|CL|sabit",
+  "description": "Shifts right keeping the sign bit (signed divide by 2).",
+  "flags": "OF SF ZF PF CF",
+  "example": "sar ax, 1   ; işaretli / 2"
+ },
+ {
+  "name": "ROL / ROR",
+  "category": "Logic and shifts",
+  "syntax": "ROL hedef, sayı | ROR hedef, sayı",
+  "description": "Rotates bits; the bit leaving one end enters at the other.",
+  "flags": "OF CF",
+  "example": "rol al, 4   ; yarım baytları takas"
+ },
+ {
+  "name": "RCL / RCR",
+  "category": "Logic and shifts",
+  "syntax": "RCL hedef, sayı | RCR hedef, sayı",
+  "description": "Rotates through the carry flag (dest and CF rotate together).",
+  "flags": "OF CF",
+  "example": "rcl dx, 1"
+ },
+ {
+  "name": "JMP",
+  "category": "Jumps and loops",
+  "syntax": "JMP etiket | JMP reg16 | JMP [bellek]",
+  "description": "Unconditional jump. Encoded short (2 bytes) or near (3 bytes).",
+  "flags": "-",
+  "example": "jmp again"
+ },
+ {
+  "name": "JE / JZ, JNE / JNZ",
+  "category": "Jumps and loops",
+  "syntax": "JE etiket",
+  "description": "Jumps if ZF=1 (equal / zero); JNE jumps if ZF=0.",
+  "flags": "-",
+  "example": "cmp ax, 0\nje zero"
+ },
+ {
+  "name": "JA JAE JB JBE",
+  "category": "Jumps and loops",
+  "syntax": "JA etiket (işaretsiz karşılaştırma)",
+  "description": "After an unsigned compare: A=above (CF=0,ZF=0), AE=above or equal (CF=0), B=below (CF=1), BE=below or equal.",
+  "flags": "-",
+  "example": "cmp al, 9\nja letter"
+ },
+ {
+  "name": "JG JGE JL JLE",
+  "category": "Jumps and loops",
+  "syntax": "JG etiket (işaretli karşılaştırma)",
+  "description": "After a signed compare: G=greater, GE=greater or equal, L=less (SF≠OF), LE=less or equal.",
+  "flags": "-",
+  "example": "cmp ax, -1\njl negative"
+ },
+ {
+  "name": "JC JNC JO JNO JS JNS JP JNP",
+  "category": "Jumps and loops",
+  "syntax": "JC etiket",
+  "description": "Jumps on a single flag: C=carry, O=overflow, S=sign, P=parity (N = when the flag is 0).",
+  "flags": "-",
+  "example": "add ax, bx\njc overflow"
+ },
+ {
+  "name": "JCXZ",
+  "category": "Jumps and loops",
+  "syntax": "JCXZ etiket",
+  "description": "Jumps if CX = 0.",
+  "flags": "-",
+  "example": "jcxz done"
+ },
+ {
+  "name": "LOOP",
+  "category": "Jumps and loops",
+  "syntax": "LOOP etiket",
+  "description": "Decrements CX and jumps if CX ≠ 0. Used for counted loops.",
+  "flags": "-",
+  "example": "mov cx, 5\nagain: ...\nloop again"
+ },
+ {
+  "name": "LOOPE / LOOPNE",
+  "category": "Jumps and loops",
+  "syntax": "LOOPE etiket | LOOPNE etiket",
+  "description": "Like LOOP, but also requires ZF=1 (LOOPE) or ZF=0 (LOOPNE).",
+  "flags": "-",
+  "example": "loopne search"
+ },
+ {
+  "name": "CALL",
+  "category": "Jumps and loops",
+  "syntax": "CALL etiket | CALL reg16 | CALL [bellek]",
+  "description": "Pushes the return address (IP) and jumps to the procedure.",
+  "flags": "-",
+  "example": "call print_num"
+ },
+ {
+  "name": "RET / RETF",
+  "category": "Jumps and loops",
+  "syntax": "RET [n] | RETF [n]",
+  "description": "Pops the return address and returns to the caller. With n, SP is increased by n (to drop parameters).",
+  "flags": "-",
+  "example": "ret"
+ },
+ {
+  "name": "INT",
+  "category": "Jumps and loops",
+  "syntax": "INT numara",
+  "description": "Software interrupt: pushes FLAGS, CS and IP and runs the service from the vector table. INT 10h video, INT 16h keyboard, INT 21h DOS.",
+  "flags": "IF TF = 0",
+  "example": "mov ah, 9\nint 21h"
+ },
+ {
+  "name": "IRET",
+  "category": "Jumps and loops",
+  "syntax": "IRET",
+  "description": "Returns from an interrupt handler: pops IP, CS and FLAGS.",
+  "flags": "hepsi / all",
+  "example": "iret"
+ },
+ {
+  "name": "MOVSB / MOVSW",
+  "category": "String operations",
+  "syntax": "MOVSB | MOVSW  (REP ile)",
+  "description": "Copies [DS:SI] to [ES:DI]; SI and DI increase when DF=0, decrease when DF=1.",
+  "flags": "-",
+  "example": "cld\nmov cx, 10\nrep movsb"
+ },
+ {
+  "name": "CMPSB / CMPSW",
+  "category": "String operations",
+  "syntax": "CMPSB | CMPSW  (REPE/REPNE ile)",
+  "description": "Compares [DS:SI] with [ES:DI].",
+  "flags": "OF SF ZF AF PF CF",
+  "example": "repe cmpsb"
+ },
+ {
+  "name": "SCASB / SCASW",
+  "category": "String operations",
+  "syntax": "SCASB | SCASW  (REPNE ile arama)",
+  "description": "Compares AL/AX with [ES:DI]; used to search a string.",
+  "flags": "OF SF ZF AF PF CF",
+  "example": "mov al, 0\nrepne scasb"
+ },
+ {
+  "name": "LODSB / LODSW",
+  "category": "String operations",
+  "syntax": "LODSB | LODSW",
+  "description": "Loads [DS:SI] into AL/AX and advances SI.",
+  "flags": "-",
+  "example": "lodsb"
+ },
+ {
+  "name": "STOSB / STOSW",
+  "category": "String operations",
+  "syntax": "STOSB | STOSW  (REP ile doldurma)",
+  "description": "Stores AL/AX at [ES:DI] and advances DI.",
+  "flags": "-",
+  "example": "mov al, ' '\nmov cx, 80\nrep stosb"
+ },
+ {
+  "name": "REP / REPE / REPNE",
+  "category": "String operations",
+  "syntax": "REP komut",
+  "description": "Repeats the following string instruction CX times (REPE: while equal, REPNE: while not equal).",
+  "flags": "-",
+  "example": "rep movsw"
+ },
+ {
+  "name": "CLC / STC / CMC",
+  "category": "Flags and processor control",
+  "syntax": "CLC | STC | CMC",
+  "description": "Clears, sets or complements the carry flag.",
+  "flags": "CF",
+  "example": "stc"
+ },
+ {
+  "name": "CLD / STD",
+  "category": "Flags and processor control",
+  "syntax": "CLD | STD",
+  "description": "Clears / sets the direction flag. After CLD string instructions move forward.",
+  "flags": "DF",
+  "example": "cld"
+ },
+ {
+  "name": "CLI / STI",
+  "category": "Flags and processor control",
+  "syntax": "CLI | STI",
+  "description": "Disables / enables hardware interrupts.",
+  "flags": "IF",
+  "example": "cli"
+ },
+ {
+  "name": "HLT",
+  "category": "Flags and processor control",
+  "syntax": "HLT",
+  "description": "Halts the processor. In emu8086ln the program stops here.",
+  "flags": "-",
+  "example": "hlt"
+ },
+ {
+  "name": "NOP",
+  "category": "Flags and processor control",
+  "syntax": "NOP",
+  "description": "Does nothing (1 byte).",
+  "flags": "-",
+  "example": "nop"
+ },
+ {
+  "name": "INT 21h / AH=09h",
+  "category": "Interrupt services",
+  "syntax": "DS:DX = '$' ile biten metin",
+  "description": "DOS: prints text up to the '$' character.",
+  "flags": "-",
+  "example": "mov dx, offset msg\nmov ah, 9\nint 21h"
+ },
+ {
+  "name": "INT 21h / AH=01h, 02h",
+  "category": "Interrupt services",
+  "syntax": "AH=01h: tuş oku + ekrana yaz (AL) | AH=02h: DL karakterini yaz",
+  "description": "DOS: read and print a single character.",
+  "flags": "-",
+  "example": "mov dl, 'A'\nmov ah, 2\nint 21h"
+ },
+ {
+  "name": "INT 21h / AH=0Ah",
+  "category": "Interrupt services",
+  "syntax": "DS:DX = tampon [en fazla][okunan][karakterler]",
+  "description": "DOS: reads a line until Enter. The second byte receives the character count.",
+  "flags": "-",
+  "example": "mov dx, offset buf\nmov ah, 0Ah\nint 21h"
+ },
+ {
+  "name": "INT 21h / AH=4Ch",
+  "category": "Interrupt services",
+  "syntax": "AL = çıkış kodu",
+  "description": "DOS: terminates the program.",
+  "flags": "-",
+  "example": "mov ax, 4C00h\nint 21h"
+ },
+ {
+  "name": "INT 21h / AH=3Ch..42h",
+  "category": "Interrupt services",
+  "syntax": "3Ch oluştur, 3Dh aç, 3Eh kapat, 3Fh oku, 40h yaz, 41h sil, 42h konum",
+  "description": "DOS file functions on the virtual drive C: (Documents\\emu8086ln\\vdrive\\C). On error CF=1 and AX holds the error code.",
+  "flags": "CF = hata / error",
+  "example": "mov ah, 3Dh\nmov al, 0\nmov dx, offset name\nint 21h"
+ },
+ {
+  "name": "INT 10h / AH=00h",
+  "category": "Interrupt services",
+  "syntax": "AL = video modu (03h metin 80x25, 13h grafik 320x200x256)",
+  "description": "BIOS: sets the video mode and clears the screen.",
+  "flags": "-",
+  "example": "mov ax, 0013h\nint 10h"
+ },
+ {
+  "name": "INT 10h / AH=02h",
+  "category": "Interrupt services",
+  "syntax": "DH = satır, DL = sütun, BH = sayfa",
+  "description": "BIOS: moves the cursor.",
+  "flags": "-",
+  "example": "mov dh, 5\nmov dl, 10\nmov ah, 2\nint 10h"
+ },
+ {
+  "name": "INT 10h / AH=09h, 0Eh",
+  "category": "Interrupt services",
+  "syntax": "09h: AL karakter, BL renk, CX tekrar | 0Eh: AL karakter (daktilo)",
+  "description": "BIOS: write a coloured character (09h) or teletype output (0Eh).",
+  "flags": "-",
+  "example": "mov al, '*'\nmov bl, 0Ch\nmov cx, 1\nmov ah, 9\nint 10h"
+ },
+ {
+  "name": "INT 10h / AH=0Ch",
+  "category": "Interrupt services",
+  "syntax": "AL = renk, CX = x, DX = y",
+  "description": "BIOS: plots a pixel in graphics mode.",
+  "flags": "-",
+  "example": "mov ax, 0C0Fh\nmov cx, 100\nmov dx, 50\nint 10h"
+ },
+ {
+  "name": "INT 16h / AH=00h, 01h",
+  "category": "Interrupt services",
+  "syntax": "00h: tuş bekle (AH tarama kodu, AL ASCII) | 01h: tuş var mı (ZF)",
+  "description": "BIOS keyboard: wait for a key, or check for a pending key.",
+  "flags": "01h: ZF",
+  "example": "mov ah, 0\nint 16h"
+ },
+ {
+  "name": "INT 15h / AH=86h",
+  "category": "Interrupt services",
+  "syntax": "CX:DX = mikrosaniye",
+  "description": "BIOS: waits for the given time (for animations).",
+  "flags": "CF",
+  "example": "mov cx, 0Fh\nmov dx, 4240h\nmov ah, 86h\nint 15h"
+ },
+ {
+  "name": "ORG",
+  "category": "Assembler directives",
+  "syntax": "ORG adres",
+  "description": "Sets the location counter. COM programs start at 100h.",
+  "flags": "-",
+  "example": "org 100h"
+ },
+ {
+  "name": "DB / DW / DD",
+  "category": "Assembler directives",
+  "syntax": "ad DB değer, ... | n DUP(değer)",
+  "description": "Defines bytes (DB), words (DW) or double words (DD). ? means no initial value.",
+  "flags": "-",
+  "example": "msg db 'Merhaba$'\nsayilar dw 1, 2, 3\ntampon db 20 dup(?)"
+ },
+ {
+  "name": "EQU",
+  "category": "Assembler directives",
+  "syntax": "ad EQU ifade",
+  "description": "Defines a constant; uses no memory. $ is the current address.",
+  "flags": "-",
+  "example": "uzunluk equ $ - msg"
+ },
+ {
+  "name": "PROC / ENDP",
+  "category": "Assembler directives",
+  "syntax": "ad PROC [NEAR|FAR] ... ad ENDP",
+  "description": "Defines a procedure called with CALL and left with RET.",
+  "flags": "-",
+  "example": "topla proc\n  add ax, bx\n  ret\ntopla endp"
+ },
+ {
+  "name": "SEGMENT / ENDS",
+  "category": "Assembler directives",
+  "syntax": "ad SEGMENT ... ENDS",
+  "description": "Defines a segment in EXE programs; code, data and stack live in separate segments.",
+  "flags": "-",
+  "example": "data segment\n  x dw 5\nends"
+ },
+ {
+  "name": "MACRO / ENDM",
+  "category": "Assembler directives",
+  "syntax": "ad MACRO parametreler ... ENDM",
+  "description": "Defines a macro expanded in place where it is used. LOCAL creates labels private to each expansion.",
+  "flags": "-",
+  "example": "yaz macro c\n  mov dl, c\n  mov ah, 2\n  int 21h\nendm"
+ },
+ {
+  "name": "INCLUDE",
+  "category": "Assembler directives",
+  "syntax": "INCLUDE 'dosya.inc'",
+  "description": "Inserts another file here. emu8086.inc provides ready macros such as PRINT, PRINTN, PUTC, GOTOXY, SCAN_NUM and PRINT_NUM.",
+  "flags": "-",
+  "example": "include 'emu8086.inc'"
+ },
+ {
+  "name": "#make_COM# / #make_EXE#",
+  "category": "Assembler directives",
+  "syntax": "#make_COM# | #make_EXE# | #make_BIN# | #make_BOOT#",
+  "description": "Selects the output file type (emu8086 compatible). #start=device.exe# opens a virtual device panel.",
+  "flags": "-",
+  "example": "#make_COM#"
+ },
+ {
+  "name": "BYTE PTR / WORD PTR",
+  "category": "Assembler directives",
+  "syntax": "BYTE PTR [bellek] | WORD PTR [bellek]",
+  "description": "Tells whether an otherwise ambiguous memory operand is 8 or 16 bits.",
+  "flags": "-",
+  "example": "mov byte ptr [bx], 5"
+ },
+ {
+  "name": "OFFSET / SEG",
+  "category": "Assembler directives",
+  "syntax": "OFFSET etiket | SEG etiket",
+  "description": "Gives the offset (address inside its segment) or the segment of a label.",
+  "flags": "-",
+  "example": "mov dx, offset msg\nmov ax, seg msg"
+ }
+]

@@ -17,6 +17,7 @@
     <Geometry x:Key="Icon.Reset">M20,12 A8,8 0 1 1 17.66,6.34 M20,4 V10 H14</Geometry>
     <Geometry x:Key="Icon.Moon">M20,14.5 A8.5,8.5 0 1 1 9.5,4 A6.5,6.5 0 0 0 20,14.5 Z</Geometry>
     <Geometry x:Key="Icon.Sun">M8,12 A4,4 0 1 0 16,12 A4,4 0 1 0 8,12 M12,2 V4 M12,20 V22 M2,12 H4 M20,12 H22 M4.9,4.9 L6.3,6.3 M17.7,17.7 L19.1,19.1 M4.9,19.1 L6.3,17.7 M17.7,6.3 L19.1,4.9</Geometry>
+    <Geometry x:Key="Icon.MoonStars">M19,14.5 A8,8 0 1 1 9.5,5 A6,6 0 0 0 19,14.5 Z M17,3 V7 M15,5 H19 M20.5,8.5 V10.5 M19.5,9.5 H21.5</Geometry>
     <Geometry x:Key="Icon.Globe">M3,12 A9,9 0 1 0 21,12 A9,9 0 1 0 3,12 M3,12 H21 M12,3 C15,6 15,18 12,21 C9,18 9,6 12,3</Geometry>
     <Geometry x:Key="Icon.Chip">M7,7 H17 V17 H7 Z M10,10 H14 V14 H10 Z M9,3 V7 M15,3 V7 M9,17 V21 M15,17 V21 M3,9 H7 M3,15 H7 M17,9 H21 M17,15 H21</Geometry>
     <Geometry x:Key="Icon.Help">M3,12 A9,9 0 1 0 21,12 A9,9 0 1 0 3,12 M9.5,9.5 A2.5,2.5 0 1 1 13,11.8 C12.3,12.2 12,12.7 12,13.8 M12,17 V17.3</Geometry>

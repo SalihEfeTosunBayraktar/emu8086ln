@@ -17,6 +17,12 @@
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Control}}"/>
     </Style>
+    <!-- Menu icons live in popups, so they take the theme colour directly. -->
+    <Style x:Key="MenuIcon" TargetType="Path" BasedOn="{StaticResource Icon}">
+        <Setter Property="Stroke" Value="{DynamicResource Fg.Secondary}"/>
+        <Setter Property="Width" Value="14"/>
+        <Setter Property="Height" Value="14"/>
+    </Style>
     <Style x:Key="IconFilled" TargetType="Path" BasedOn="{StaticResource Icon}">
         <Setter Property="Fill" Value="{Binding Stroke, RelativeSource={RelativeSource Self}}"/>
     </Style>
@@ -622,34 +628,64 @@
         </Setter>
     </Style>
 
-    <!-- On/off switch (used for the light/dark theme) -->
-    <Style x:Key="Switch" TargetType="CheckBox">
+    <!-- Light/dark switch: the knob carries the active theme's icon in colour,
+         the track shows the other theme's icon faded. IsChecked = dark theme. -->
+    <Style x:Key="ThemeSwitch" TargetType="CheckBox">
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Border x:Name="Track" Width="38" Height="20" CornerRadius="10" Background="{DynamicResource Border.Strong}">
-                        <Ellipse x:Name="Knob" Width="14" Height="14" Fill="White" HorizontalAlignment="Left" Margin="3,0">
-                            <Ellipse.RenderTransform>
+                    <Grid Width="62" Height="30">
+                        <Border x:Name="Track" CornerRadius="15" Background="#E3E6EC" BorderBrush="#C9CED8" BorderThickness="1"/>
+                        <!-- faded icons inside the track -->
+                        <Path x:Name="TrackSun" Data="{StaticResource Icon.Sun}" Style="{StaticResource Icon}" Width="14" Height="14"
+                              Stroke="#9AA3B5" HorizontalAlignment="Left" Margin="9,0,0,0" Opacity="0"/>
+                        <Path x:Name="TrackMoon" Data="{StaticResource Icon.MoonStars}" Style="{StaticResource Icon}" Width="14" Height="14"
+                              Stroke="#9AA3B5" HorizontalAlignment="Right" Margin="0,0,9,0"/>
+                        <!-- knob with the active icon -->
+                        <Grid x:Name="Knob" Width="26" Height="26" HorizontalAlignment="Left" Margin="2,0">
+                            <Grid.RenderTransform>
                                 <TranslateTransform x:Name="Shift" X="0"/>
-                            </Ellipse.RenderTransform>
-                        </Ellipse>
-                    </Border>
+                            </Grid.RenderTransform>
+                            <Grid.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.35" Direction="270"/>
+                            </Grid.Effect>
+                            <Ellipse Fill="White"/>
+                            <Path x:Name="KnobSun" Data="{StaticResource Icon.Sun}" Style="{StaticResource Icon}" Width="16" Height="16"
+                                  Stroke="#F29A1E" StrokeThickness="2"/>
+                            <Path x:Name="KnobMoon" Data="{StaticResource Icon.MoonStars}" Style="{StaticResource Icon}" Width="15" Height="15"
+                                  Stroke="#4A5BD4" StrokeThickness="2" Opacity="0"/>
+                        </Grid>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource Accent}"/>
+                            <Setter TargetName="Track" Property="Background" Value="#565F86"/>
+                            <Setter TargetName="Track" Property="BorderBrush" Value="#454D70"/>
+                            <Setter TargetName="TrackSun" Property="Stroke" Value="#AEB5D0"/>
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Shift" Storyboard.TargetProperty="X" To="18" Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetName="Shift" Storyboard.TargetProperty="X" To="32" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="KnobSun" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetName="KnobMoon" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="TrackSun" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="TrackMoon" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Shift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetName="Shift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="KnobSun" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="KnobMoon" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetName="TrackSun" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15"/>
+                                        <DoubleAnimation Storyboard.TargetName="TrackMoon" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
@@ -667,6 +703,7 @@
         <Setter Property="FontFamily" Value="{StaticResource Font.UI}"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="SizeToContent" Value="WidthAndHeight"/>
+        <Setter Property="WindowStyle" Value="None"/>
         <Setter Property="ResizeMode" Value="NoResize"/>
         <Setter Property="ShowInTaskbar" Value="False"/>
         <Setter Property="UseLayoutRounding" Value="True"/>

@@ -95,10 +95,10 @@
                 <Menu Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
                     <MenuItem Header="{svc:Tr menu.file}">
                         <MenuItem Header="{svc:Tr cmd.newProject}" Command="{Binding NewProjectCommand}" InputGestureText="Ctrl+N">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Project}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Project}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.openProject}" Command="{Binding OpenProjectCommand}" InputGestureText="Ctrl+O">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Folder}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Folder}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem x:Name="RecentMenu" Header="{svc:Tr cmd.recent}" ItemsSource="{Binding RecentProjects}">
                             <MenuItem.ItemContainerStyle>
@@ -110,29 +110,29 @@
                         </MenuItem>
                         <Separator/>
                         <MenuItem Header="{svc:Tr cmd.newFile}" Command="{Binding NewFileCommand}">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.New}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.New}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.openFile}" Command="{Binding OpenFileCommand}">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.File}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.File}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.save}" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Save}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Save}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.saveAll}" Command="{Binding SaveAllCommand}" InputGestureText="Ctrl+Shift+S"/>
                         <MenuItem Header="{svc:Tr cmd.closeFile}" Command="{Binding CloseDocumentCommand}" InputGestureText="Ctrl+F4"/>
                         <Separator/>
                         <MenuItem Header="{svc:Tr cmd.export}" Command="{Binding ExportCommand}">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Export}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Export}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
                         <MenuItem Header="{svc:Tr cmd.exit}" Click="OnExitClick"/>
                     </MenuItem>
                     <MenuItem Header="{svc:Tr menu.run}">
                         <MenuItem Header="{svc:Tr cmd.build}" Command="{Binding BuildCommand}" InputGestureText="F7">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Build}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Build}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.run}" Command="{Binding RunCommand}" InputGestureText="F5">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Run}" Style="{StaticResource IconFilled}" Width="12" Height="12"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Run}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.pause}" Command="{Binding PauseCommand}" InputGestureText="F6"/>
                         <MenuItem Header="{svc:Tr cmd.reset}" Command="{Binding StopCommand}" InputGestureText="Shift+F5"/>
@@ -156,24 +156,24 @@
                     </MenuItem>
                     <MenuItem Header="{svc:Tr menu.view}">
                         <MenuItem Header="{svc:Tr cmd.toggleTheme}" Command="{Binding ToggleThemeCommand}">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Moon}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Moon}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.visualizer}" Click="OnVisualizerClick" InputGestureText="F12">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Chip}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Chip}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.settings}" Click="OnSettingsClick">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Settings}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Settings}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.floatScreen}" Click="OnFloatScreenClick">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Screen}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Screen}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                     </MenuItem>
                     <MenuItem Header="{svc:Tr menu.help}">
                         <MenuItem Header="{svc:Tr cmd.reference}" Click="OnReferenceClick">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Book}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Book}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.about}" Command="{Binding AboutCommand}">
-                            <MenuItem.Icon><Path Data="{StaticResource Icon.Help}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Help}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
                     </MenuItem>
                 </Menu>
@@ -261,11 +261,8 @@
                         <Path Data="{StaticResource Icon.Globe}" Style="{StaticResource Icon}" Stroke="{DynamicResource Fg.Secondary}" Margin="0,0,6,0"/>
                         <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" DisplayMemberPath="Name"
                                   Width="120" ToolTip="{svc:Tr tool.language}"/>
-                        <StackPanel Orientation="Horizontal" Margin="14,0,8,0" ToolTip="{svc:Tr cmd.toggleTheme}" VerticalAlignment="Center">
-                            <Path Data="{StaticResource Icon.Sun}" Style="{StaticResource Icon}" Stroke="{DynamicResource Fg.Secondary}" Width="15" Height="15"/>
-                            <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding IsDarkTheme}" Margin="7,0"/>
-                            <Path Data="{StaticResource Icon.Moon}" Style="{StaticResource Icon}" Stroke="{DynamicResource Fg.Secondary}" Width="14" Height="14"/>
-                        </StackPanel>
+                        <CheckBox Style="{StaticResource ThemeSwitch}" IsChecked="{Binding IsDarkTheme}" Margin="14,0,8,0"
+                                  VerticalAlignment="Center" ToolTip="{svc:Tr cmd.toggleTheme}"/>
                         <Button Style="{StaticResource ToolButton}" Click="OnSettingsClick" ToolTip="{svc:Tr cmd.settings}">
                             <Path Data="{StaticResource Icon.Settings}" Style="{StaticResource Icon}"/>
                         </Button>
