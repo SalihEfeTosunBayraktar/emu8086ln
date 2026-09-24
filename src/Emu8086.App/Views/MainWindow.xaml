@@ -121,6 +121,9 @@
                         <MenuItem Header="{svc:Tr cmd.saveAll}" Command="{Binding SaveAllCommand}" InputGestureText="Ctrl+Shift+S"/>
                         <MenuItem Header="{svc:Tr cmd.closeFile}" Command="{Binding CloseDocumentCommand}" InputGestureText="Ctrl+F4"/>
                         <Separator/>
+                        <MenuItem Header="{svc:Tr cmd.exportListing}" Command="{Binding ExportListingCommand}">
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.File}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.export}" Command="{Binding ExportCommand}">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.Export}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>

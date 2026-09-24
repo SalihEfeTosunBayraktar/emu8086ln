@@ -48,7 +48,7 @@ public class StepAnalyzerTests
     public void CompareChangesOnlyFlags()
     {
         var a = AnalyzeLast("mov al, 7", "cmp al, 7");
-        Assert.Empty(a.RegistersWritten.Where(r => r.Name != "IP"));
+        Assert.DoesNotContain(a.RegistersWritten, r => r.Name != "IP");
         Assert.Contains(a.FlagsChanged, f => f.Name == "ZF" && f.After);
     }
 

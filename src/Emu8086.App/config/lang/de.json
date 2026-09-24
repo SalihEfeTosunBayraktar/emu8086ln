@@ -254,5 +254,7 @@
   "find.position": "{0} von {1}",
   "find.replaced": "{0} ersetzt",
   "goto.title": "Gehe zu Zeile",
-  "goto.prompt": "Zeilennummer (1 - {0}):"
+  "goto.prompt": "Zeilennummer (1 - {0}):",
+  "cmd.exportListing": "Listing und Symboltabelle exportieren (.lst / .symbol)",
+  "output.listing": "Listing in {0}, Symbole in {1} geschrieben"
 }

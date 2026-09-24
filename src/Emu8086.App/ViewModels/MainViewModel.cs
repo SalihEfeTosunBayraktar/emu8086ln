@@ -69,6 +69,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleBreakpointCommand = new RelayCommand(ToggleBreakpointAtCaret, () => SelectedDocument != null);
         ClearBreakpointsCommand = new RelayCommand(ClearBreakpoints);
         ExportCommand = new RelayCommand(Export, () => CanBuild());
+        ExportListingCommand = new RelayCommand(ExportListing, () => !Session.IsBusy && CanBuild());
         ToggleThemeCommand = new RelayCommand(ThemeService.Toggle);
         ThemeService.ThemeChanged += () => OnPropertyChanged(nameof(IsDarkTheme));
         AboutCommand = new RelayCommand(_dialogs.ShowAbout);
@@ -119,6 +120,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ICommand ToggleBreakpointCommand { get; }
     public ICommand ClearBreakpointsCommand { get; }
     public ICommand ExportCommand { get; }
+    public ICommand ExportListingCommand { get; }
     public ICommand ToggleThemeCommand { get; }
     public ICommand AboutCommand { get; }
     public ICommand GoToDiagnosticCommand { get; }

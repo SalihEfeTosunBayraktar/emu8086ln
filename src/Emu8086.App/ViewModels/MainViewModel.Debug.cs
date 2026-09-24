@@ -165,6 +165,25 @@ public sealed partial class MainViewModel
         }
     }
 
+    /// <summary>Writes &lt;name&gt;.lst and &lt;name&gt;.symbol next to the source and opens the listing.</summary>
+    private void ExportListing()
+    {
+        if (!Build() || Session.Build is not { } build || _builtText == null) return;
+        string basePath = Path.ChangeExtension(build.SourcePath, null);
+        try
+        {
+            File.WriteAllText(basePath + ".lst", ListingWriter.Listing(build.Result, _builtText, Path.GetFileName(build.SourcePath)));
+            File.WriteAllText(basePath + ".symbol", ListingWriter.Symbols(build.Result));
+            Log(Loc.Instance.Format("output.listing", basePath + ".lst", basePath + ".symbol"), OutputKind.Success);
+            RefreshProjectFiles();
+            OpenDocument(basePath + ".lst");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            _dialogs.ShowMessage(e.Message);
+        }
+    }
+
     #endregion
 
     #region Execution

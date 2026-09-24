@@ -3,7 +3,7 @@ namespace Emu8086.Core.Assembler;
 public enum OutputFormat { Com, Exe, Bin, Boot }
 
 /// <summary>Bytes produced by one source line; used to map CS:IP back to the editor.</summary>
-public sealed record ListingEntry(int Line, bool FromMainFile, int Segment, int Offset, int Length, bool IsCode);
+public sealed record ListingEntry(int Line, bool FromMainFile, int Segment, int Offset, int Length, bool IsCode, string Text = "");
 
 public sealed class AssemblyResult
 {

@@ -27,7 +27,7 @@ public sealed record ProjectTemplate(string Id, string File, string OutputName);
 
 public static class ProjectService
 {
-    public static readonly HashSet<string> SourceExtensions = [".asm", ".inc", ".txt"];
+    public static readonly HashSet<string> SourceExtensions = [".asm", ".inc", ".txt", ".lst", ".symbol"];
 
     private sealed record ProjectFile(string Name, string MainFile);
 

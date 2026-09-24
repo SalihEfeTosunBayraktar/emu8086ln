@@ -254,5 +254,7 @@
   "find.position": "{0} / {1}",
   "find.replaced": "{0} yer değiştirildi",
   "goto.title": "Satıra git",
-  "goto.prompt": "Satır numarası (1 - {0}):"
+  "goto.prompt": "Satır numarası (1 - {0}):",
+  "cmd.exportListing": "Listing ve sembol tablosunu dışa aktar (.lst / .symbol)",
+  "output.listing": "Listing {0} dosyasına, semboller {1} dosyasına yazıldı"
 }

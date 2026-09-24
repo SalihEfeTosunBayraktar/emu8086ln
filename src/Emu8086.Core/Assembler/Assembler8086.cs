@@ -151,7 +151,7 @@ public sealed partial class Assembler8086 : IExprContext
                 _lineSizes[i] = size;
             }
             if (size > 0)
-                _listing.Add(new ListingEntry(_line.Line, _line.FromMainFile, _current, startLoc, size, kind == LineKind.Instruction));
+                _listing.Add(new ListingEntry(_line.Line, _line.FromMainFile, _current, startLoc, size, kind == LineKind.Instruction, _line.Text.Trim()));
         }
 
         if (_procStack.Count > 0) Report(AsmErrorCode.MissingEndp, _procStack.Peek().Name);

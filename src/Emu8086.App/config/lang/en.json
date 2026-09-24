@@ -254,5 +254,7 @@
   "find.position": "{0} of {1}",
   "find.replaced": "{0} replaced",
   "goto.title": "Go to line",
-  "goto.prompt": "Line number (1 - {0}):"
+  "goto.prompt": "Line number (1 - {0}):",
+  "cmd.exportListing": "Export listing and symbol table (.lst / .symbol)",
+  "output.listing": "Listing written to {0}, symbols to {1}"
 }
