@@ -17,11 +17,13 @@ public sealed class CpuVisualizerWindow
 {
     private const double MinPhaseMs = 150;
     private const double MaxPhaseMs = 2000;
+    private const int TimelineLength = 40;
 
     private readonly Window _window;
     private readonly MainViewModel _vm;
     private readonly CpuDiagram _diagram = new();
     private readonly ItemsControl _narration = new();
+    private readonly ExecutionTimeline _timeline = new();
     private readonly CheckBox _animate;
     private readonly DispatcherTimer _timer;
     private StepAnalysis? _step;
@@ -56,10 +58,14 @@ public sealed class CpuVisualizerWindow
         _window.SetResourceReference(Window.BackgroundProperty, "Bg.Window");
         _window.SetResourceReference(Window.ForegroundProperty, "Fg.Primary");
 
+        _timeline.StepSelected += ShowStep;
+        _timeline.RewindRequested += vm.Rewind;
         vm.StepCompleted += OnStepCompleted;
+        SettingsService.Changed += OnSettingsChanged;
         _window.Closed += (_, _) =>
         {
             vm.StepCompleted -= OnStepCompleted;
+            SettingsService.Changed -= OnSettingsChanged;
             _timer.Stop();
         };
         OnStepCompleted(vm.LastStep);
@@ -115,6 +121,8 @@ public sealed class CpuVisualizerWindow
         toolbarHost.SetResourceReference(Border.BorderBrushProperty, "Border");
         DockPanel.SetDock(toolbarHost, Dock.Top);
         root.Children.Add(toolbarHost);
+        DockPanel.SetDock(_timeline, Dock.Bottom);
+        root.Children.Add(_timeline);
         root.Children.Add(body);
         return root;
     }
@@ -186,7 +194,23 @@ public sealed class CpuVisualizerWindow
         return panel;
     }
 
+    private static bool TimelineEnabled => SettingsService.Current.ExecutionTimeline;
+
+    private void OnSettingsChanged()
+    {
+        bool wasVisible = _timeline.Visibility == Visibility.Visible;
+        _timeline.Visibility = TimelineEnabled ? Visibility.Visible : Visibility.Collapsed;
+        if (TimelineEnabled && !wasVisible) _timeline.Show(_vm.RecentSteps(TimelineLength));
+    }
+
     private void OnStepCompleted(StepAnalysis? step)
+    {
+        _timeline.Visibility = TimelineEnabled ? Visibility.Visible : Visibility.Collapsed;
+        if (TimelineEnabled) _timeline.Show(_vm.RecentSteps(TimelineLength));
+        ShowStep(step);
+    }
+
+    private void ShowStep(StepAnalysis? step)
     {
         _step = step;
         _lines = step == null ? new() : StepNarrator.Describe(step);

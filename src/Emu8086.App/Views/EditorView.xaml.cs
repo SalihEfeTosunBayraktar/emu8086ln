@@ -110,7 +110,7 @@ public partial class EditorView : UserControl
             if (_model?.ExecutionLine is int line) Editor.ScrollTo(line, 0);
             Redraw();
         }
-        else if (e.PropertyName == nameof(DocumentViewModel.ErrorLines)) Redraw();
+        else if (e.PropertyName is nameof(DocumentViewModel.ErrorLines) or nameof(DocumentViewModel.Warnings)) Redraw();
     }
 
     private void Redraw()

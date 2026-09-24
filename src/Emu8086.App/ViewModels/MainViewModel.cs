@@ -75,6 +75,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ClearBreakpointsCommand = new RelayCommand(ClearBreakpoints);
         ExportCommand = new RelayCommand(Export, () => CanBuild());
         ExportListingCommand = new RelayCommand(ExportListing, () => !Session.IsBusy && CanBuild());
+        ExportReportCommand = new RelayCommand(ExportReport, () => _buildDocument != null && Session.State != SessionState.Empty);
         ToggleThemeCommand = new RelayCommand(ThemeService.Toggle);
         ThemeService.ThemeChanged += () => OnPropertyChanged(nameof(IsDarkTheme));
         AboutCommand = new RelayCommand(_dialogs.ShowAbout);
@@ -83,6 +84,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         UpdateStateText();
         InitializeAutoSave();
+        InitializeCodeAnalysis();
     }
 
     public EmulatorSession Session { get; }
@@ -142,6 +144,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ICommand ClearBreakpointsCommand { get; }
     public ICommand ExportCommand { get; }
     public ICommand ExportListingCommand { get; }
+    public ICommand ExportReportCommand { get; }
+
+    /// <summary>Supplied by the view: the emulator screen as PNG.</summary>
+    public Func<byte[]?>? CaptureScreen { get; set; }
     public ICommand ToggleThemeCommand { get; }
     public ICommand AboutCommand { get; }
     public ICommand GoToDiagnosticCommand { get; }

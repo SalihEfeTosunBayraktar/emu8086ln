@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<style>
+  :root { --bg: #ffffff; --fg: #1f2328; --muted: #656d76; --panel: #f6f8fa; --border: #d0d7de; --accent: #2f6fed; }
+  body { margin: 0 auto; max-width: 960px; padding: 24px 16px; background: var(--bg); color: var(--fg);
+         font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  h2 { margin: 28px 0 8px; font-size: 15px; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+  .meta { color: var(--muted); }
+  pre, .grid { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+               font: 13px/1.45 "Cascadia Mono", Consolas, monospace; overflow-x: auto; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 4px 16px; }
+  .grid b { color: var(--muted); font-weight: 600; margin-right: 6px; }
+  img { max-width: 100%; image-rendering: pixelated; border-radius: 8px; border: 1px solid var(--border); }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 2px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  td:first-child { color: var(--muted); white-space: nowrap; font-family: Consolas, monospace; }
+</style>
+</head>
+<body>
+<h1>{{title}}</h1>
+<div class="meta">{{summary}}</div>
+
+<h2>{{h.screen}}</h2>
+{{screen}}
+
+<h2>{{h.registers}}</h2>
+<div class="grid">{{registers}}</div>
+
+<h2>{{h.flags}}</h2>
+<div class="grid">{{flags}}</div>
+
+<h2>{{h.output}}</h2>
+<table>{{output}}</table>
+
+<h2>{{h.source}}</h2>
+<pre>{{source}}</pre>
+</body>
+</html>

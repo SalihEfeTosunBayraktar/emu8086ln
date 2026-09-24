@@ -31,6 +31,9 @@ public sealed class ExecutionHistory : IMemoryJournal
     public int Count => _records.Count;
     public StepRecord? Last => _records.Last?.Value;
 
+    /// <summary>The last <paramref name="count"/> executed instructions, oldest first.</summary>
+    public IEnumerable<StepRecord> Recent(int count) => _records.Skip(Math.Max(0, _records.Count - count));
+
     public void Begin(CpuState before) => _current = new StepRecord { Before = before };
 
     public void Record(int address, byte oldValue)

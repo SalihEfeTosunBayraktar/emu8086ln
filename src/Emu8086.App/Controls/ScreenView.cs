@@ -107,6 +107,19 @@ public sealed class ScreenView : FrameworkElement
         InvalidateVisual();
     }
 
+    /// <summary>The current screen as a PNG image, or null before anything was drawn.</summary>
+    public byte[]? ToPng()
+    {
+        Invalidate();
+        Refresh();
+        if (_bitmap == null) return null;
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(_bitmap));
+        using var stream = new System.IO.MemoryStream();
+        encoder.Save(stream);
+        return stream.ToArray();
+    }
+
     /// <summary>Forces a full redraw on the next refresh (e.g. after a new program is loaded).</summary>
     public void Invalidate() => _lastMemoryVersion = -1;
 

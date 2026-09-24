@@ -136,7 +136,7 @@ public sealed partial class MainViewModel
     private void RefreshDiagnosticsText()
     {
         Diagnostics.Clear();
-        foreach (var d in _lastDiagnostics)
+        foreach (var d in _lastDiagnostics.Concat(SelectedDocument?.Warnings ?? []))
             Diagnostics.Add(new DiagnosticItem(d.Severity, d.File, d.Line, BuildService.Describe(d)));
     }
 
@@ -263,6 +263,35 @@ public sealed partial class MainViewModel
         UpdateLastStep();
     }
 
+    /// <summary>Saves an HTML report of the program: screen, registers, flags, output and source.</summary>
+    private void ExportReport()
+    {
+        if (_buildDocument is not { } doc || _builtText == null) return;
+        string name = Path.GetFileNameWithoutExtension(doc.FilePath);
+        string? path = _dialogs.PickSaveFile(name + "-report.html", ".html");
+        if (path == null) return;
+
+        long count;
+        lock (Session.Sync) count = Session.Machine.Cpu.InstructionCount;
+        var data = new ReportData(
+            Title: Loc.Instance.Format("report.title", Path.GetFileName(doc.FilePath)),
+            Summary: Loc.Instance.Format("report.summary", DateTime.Now.ToString("g"), count, StateText),
+            Source: _builtText,
+            ScreenPng: CaptureScreen?.Invoke(),
+            Registers: Registers.Select(r => (r.Name, r.Value.ToString("X4"))).ToList(),
+            Flags: Flags.Select(f => (f.Name, f.Value)).ToList(),
+            Output: Output.Select(o => (o.Time, o.Text)).ToList());
+        try
+        {
+            File.WriteAllText(path, ReportService.Build(data));
+            Log(Loc.Instance.Format("output.exported", path), OutputKind.Success);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            _dialogs.ShowMessage(e.Message);
+        }
+    }
+
     /// <summary>Writes &lt;name&gt;.lst and &lt;name&gt;.symbol next to the source and opens the listing.</summary>
     private void ExportListing()
     {
@@ -308,6 +337,23 @@ public sealed partial class MainViewModel
             _baseline = last?.After ?? Session.Machine.Cpu.GetState();
         }
         Session.StepBack();
+        RefreshAll();
+        UpdateLastStep();
+    }
+
+    /// <summary>Analyses of the last <paramref name="count"/> executed instructions, oldest first.</summary>
+    public IReadOnlyList<StepAnalysis> RecentSteps(int count)
+    {
+        lock (Session.Sync)
+            return Session.Machine.History.Recent(count).Select(r => StepAnalyzer.Analyze(r, Session.Machine.Memory)).ToList();
+    }
+
+    /// <summary>Undoes the last <paramref name="steps"/> instructions at once.</summary>
+    public void Rewind(int steps)
+    {
+        if (Session.IsBusy || steps <= 0) return;
+        lock (Session.Sync) _baseline = Session.Machine.History.Last?.After ?? Session.Machine.Cpu.GetState();
+        for (int i = 0; i < steps; i++) Session.StepBack();
         RefreshAll();
         UpdateLastStep();
     }

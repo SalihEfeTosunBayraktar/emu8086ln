@@ -68,6 +68,7 @@ public sealed class SettingsWindow
         Check(loc["settings.currentLine"], S.HighlightCurrentLine, v => S.HighlightCurrentLine = v);
         Check(loc["settings.autoComplete"], S.AutoComplete, v => S.AutoComplete = v);
         Check(loc["settings.completionHelp"], S.CompletionHelp, v => S.CompletionHelp = v);
+        Check(loc["settings.codeAnalysis"], S.CodeAnalysis, v => S.CodeAnalysis = v);
 
         Section(loc["settings.appearance"]);
         Row(loc["settings.uiFontSize"], SliderWithValue(MinUiFontSize, MaxUiFontSize, S.UiFontSize, v => S.UiFontSize = v));
@@ -109,6 +110,7 @@ public sealed class SettingsWindow
         _content.Children.Add(DialogParts.Label(loc["settings.autoSaveHint"], true));
 
         Section(loc["settings.emulator"]);
+        Check(loc["settings.timeline"], S.ExecutionTimeline, v => S.ExecutionTimeline = v);
         Check(loc["settings.externalIo"], S.ExternalIo, v => S.ExternalIo = v);
         _content.Children.Add(DialogParts.Label(loc.Format("settings.externalIoHint", AppPaths.ExternalIoFile), true));
         Check(loc["settings.checkUpdates"], S.CheckForUpdates, v => S.CheckForUpdates = v);

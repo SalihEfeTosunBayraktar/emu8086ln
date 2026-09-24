@@ -26,6 +26,14 @@ public class SamplesTests
         TestHost.AssembleOk(File.ReadAllText(Path.Combine(AppDirectory, relativePath)), Include);
     }
 
+    [Theory]
+    [MemberData(nameof(SourceFiles))]
+    public void HasNoLintWarnings(string relativePath)
+    {
+        var warnings = Emu8086.Core.Analysis.CodeLinter.Analyze(File.ReadAllText(Path.Combine(AppDirectory, relativePath)), relativePath);
+        Assert.True(warnings.Count == 0, string.Join("\n", warnings.Select(w => $"{w.Line}: {w.Code} [{w.SourceText}]")));
+    }
+
     private static Machine RunExample(string name, string keys = "") =>
         TestHost.Run(File.ReadAllText(Path.Combine(AppDirectory, "Examples", name)), keys, includes: Include);
 

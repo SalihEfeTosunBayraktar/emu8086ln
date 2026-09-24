@@ -37,6 +37,7 @@ public partial class MainWindow : Window, IDialogService
         DataContext = _vm;
 
         Screen.Session = _vm.Session;
+        _vm.CaptureScreen = Screen.ToPng;
         Hex.Session = _vm.Session;
         BuildDevicePanel();
 

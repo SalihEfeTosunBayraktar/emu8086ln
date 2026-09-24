@@ -21,6 +21,7 @@
     <SolidColorBrush x:Key="Error" Color="#D1242F"/>
     <SolidColorBrush x:Key="ExecLine" Color="#3346C47A"/>
     <SolidColorBrush x:Key="ExecLine.Border" Color="#1F9D5B"/>
+    <SolidColorBrush x:Key="WarningLine" Color="#22B7791F"/>
     <SolidColorBrush x:Key="ErrorLine" Color="#26D1242F"/>
     <SolidColorBrush x:Key="Changed" Color="#C2410C"/>
     <SolidColorBrush x:Key="Breakpoint" Color="#D1242F"/>

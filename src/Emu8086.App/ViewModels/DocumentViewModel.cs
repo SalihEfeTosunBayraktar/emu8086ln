@@ -11,6 +11,7 @@ public sealed class DocumentViewModel : ObservableObject
     private bool _isDirty;
     private int? _executionLine;
     private IReadOnlyCollection<int> _errorLines = [];
+    private IReadOnlyList<Emu8086.Core.Assembler.AsmDiagnostic> _warnings = [];
     private string _filePath;
 
     public DocumentViewModel(string filePath, string text)
@@ -18,7 +19,11 @@ public sealed class DocumentViewModel : ObservableObject
         _filePath = filePath;
         Document = new TextDocument(text);
         Document.UndoStack.ClearAll();
-        Document.TextChanged += (_, _) => IsDirty = true;
+        Document.TextChanged += (_, _) =>
+        {
+            IsDirty = true;
+            EditVersion++;
+        };
         Document.Changed += (_, e) => Stats.Record(e.InsertionLength, e.RemovalLength,
             CountLineBreaks(e.InsertedText.Text) + CountLineBreaks(e.RemovedText.Text), DateTime.Now);
     }
@@ -63,6 +68,21 @@ public sealed class DocumentViewModel : ObservableObject
         get => _errorLines;
         set => Set(ref _errorLines, value);
     }
+
+    /// <summary>Incremented on every text change; lets the code analysis skip unchanged documents.</summary>
+    public int EditVersion { get; private set; }
+
+    /// <summary>Code analysis warnings for this file.</summary>
+    public IReadOnlyList<Emu8086.Core.Assembler.AsmDiagnostic> Warnings
+    {
+        get => _warnings;
+        set
+        {
+            if (Set(ref _warnings, value)) OnPropertyChanged(nameof(WarningLines));
+        }
+    }
+
+    public IReadOnlyCollection<int> WarningLines => Warnings.Select(w => w.Line).ToHashSet();
 
     /// <summary>Caret line reported by the editor view.</summary>
     public int CaretLine { get; set; } = 1;

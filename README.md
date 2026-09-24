@@ -33,6 +33,9 @@ Source-compatible with emu8086 programs (`#make_COM#`, `emu8086.inc`, virtual de
 - **Hardware extras** – virtual 1.44 MB floppy with INT 13h (write a program to it and boot from it),
   optional `emu8086.io` shared port file so external programs can act as devices.
 - **Auto save** – off, every N seconds, or smart (waits for a pause in typing, saves bigger edits and line changes at once, small edits after N seconds, everything when you leave the file).
+- **Code analysis** – warns while you type about unreachable code, procedures with unbalanced PUSH/POP and jumps to raw numbers (can be turned off in Settings).
+- **Instruction timeline** – the CPU visualizer lists recent instructions with the units they used; click one to replay it or rewind to it (can be turned off in Settings).
+- **Report export** – save the screen, registers, flags, output and source as a single HTML file, handy for homework.
 - **Updates** – shows the version, checks GitHub Releases on request (or at startup if enabled) and installs updates.
 
 ## Download

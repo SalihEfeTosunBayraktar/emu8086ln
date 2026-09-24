@@ -85,6 +85,8 @@ public sealed class LineHighlightRenderer : IBackgroundRenderer
         var exec = ThemeService.Resource<Brush>("ExecLine");
         var execBorder = new Pen(ThemeService.Resource<Brush>("ExecLine.Border"), 1);
         var error = ThemeService.Resource<Brush>("ErrorLine");
+        var warning = ThemeService.Resource<Brush>("WarningLine");
+        var warningLines = Model.WarningLines;
         var breakpoint = ThemeService.Resource<Brush>("Breakpoint");
         double width = textView.ActualWidth;
 
@@ -94,6 +96,7 @@ public sealed class LineHighlightRenderer : IBackgroundRenderer
             double top = line.VisualTop - textView.VerticalOffset;
             var rect = new Rect(0, top, width, line.Height);
             if (Model.ErrorLines.Contains(number)) dc.DrawRectangle(error, null, rect);
+            else if (warningLines.Contains(number)) dc.DrawRectangle(warning, null, rect);
             if (Model.Breakpoints.Contains(number))
                 dc.DrawRectangle(null, new Pen(breakpoint, 1) { DashStyle = DashStyles.Dash }, rect);
             if (Model.ExecutionLine == number) dc.DrawRectangle(exec, execBorder, rect);

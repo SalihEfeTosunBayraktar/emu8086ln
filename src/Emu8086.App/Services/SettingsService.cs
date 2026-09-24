@@ -20,6 +20,10 @@ public sealed class AppSettings
     public bool AutoComplete { get; set; } = true;
     /// <summary>Show an explanation with syntax and example next to completion suggestions.</summary>
     public bool CompletionHelp { get; set; } = true;
+    /// <summary>Warn about unreachable code, unbalanced PUSH/POP and jumps to raw numbers while typing.</summary>
+    public bool CodeAnalysis { get; set; } = true;
+    /// <summary>Show the recent-instruction timeline in the CPU visualizer.</summary>
+    public bool ExecutionTimeline { get; set; } = true;
     /// <summary>Duration of one phase in the CPU visualizer animation (ms).</summary>
     public int VisualizerPhaseMs { get; set; } = 650;
     public bool CheckForUpdates { get; set; }
@@ -63,6 +67,7 @@ public static class SettingsService
         Current.HighlightCurrentLine = defaults.HighlightCurrentLine;
         Current.AutoComplete = defaults.AutoComplete;
         Current.CompletionHelp = defaults.CompletionHelp;
+        Current.CodeAnalysis = defaults.CodeAnalysis;
         NotifyChanged();
     }
 

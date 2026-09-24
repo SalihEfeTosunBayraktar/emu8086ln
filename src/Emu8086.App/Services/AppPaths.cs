@@ -10,6 +10,7 @@ public static class AppPaths
     public static string InstallDirectory => AppContext.BaseDirectory;
     public static string ConfigDirectory => Path.Combine(InstallDirectory, "config");
     public static string LanguageDirectory => Path.Combine(ConfigDirectory, "lang");
+    public static string ReportTemplate => Path.Combine(ConfigDirectory, "report", "template.html");
     public static string TemplateDirectory => Path.Combine(ConfigDirectory, "templates");
     public static string LibraryDirectory => Path.Combine(InstallDirectory, "Library");
     public static string ExamplesDirectory => Path.Combine(InstallDirectory, "Examples");
