@@ -90,6 +90,40 @@ public static class MessageDialog
     }
 }
 
+public static class UpdateDialog
+{
+    private const int MaxNotesLength = 1500;
+
+    /// <summary>Shows the release notes and asks whether to install now.</summary>
+    public static bool Ask(Window owner, UpdateInfo update)
+    {
+        Window? window = null;
+        bool install = false;
+        var loc = Loc.Instance;
+        string notes = update.Notes.Length > MaxNotesLength ? update.Notes[..MaxNotesLength] + "..." : update.Notes;
+
+        var content = new StackPanel();
+        content.Children.Add(new TextBlock
+        {
+            Text = loc.Format("update.available", update.Version.ToString(3), UpdateService.CurrentVersion.ToString(3)),
+            FontSize = 15, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10),
+        });
+        var notesBox = new TextBox
+        {
+            Text = notes, IsReadOnly = true, TextWrapping = TextWrapping.Wrap, MaxHeight = 260,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        };
+        content.Children.Add(notesBox);
+        content.Children.Add(DialogParts.Label(loc["update.restartNote"], true));
+        content.Children.Add(DialogParts.Buttons(
+            DialogParts.Button("update.install", true, () => { install = true; window!.Close(); }),
+            DialogParts.Button("update.later", false, () => window!.Close())));
+        window = DialogParts.Create(owner, loc["update.title"], content, 520);
+        window.ShowDialog();
+        return install;
+    }
+}
+
 public sealed class InputDialog
 {
     private readonly Window _window;

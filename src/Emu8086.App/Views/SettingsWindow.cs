@@ -95,6 +95,8 @@ public sealed class SettingsWindow
         };
         Row(loc["settings.language"], language);
 
+        Check(loc["settings.checkUpdates"], S.CheckForUpdates, v => S.CheckForUpdates = v);
+
         var reset = DialogParts.Button("settings.reset", false, () =>
         {
             SettingsService.ResetAppearance();

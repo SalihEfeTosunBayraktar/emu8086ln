@@ -229,5 +229,16 @@
   "viz.n.int": "KESME  INT {0:X2}h: BIOS/DOS servisi çalıştı",
   "viz.n.jump": "ATLAMA  çalışma {0:X4}:{1:X4} adresinden devam ediyor",
   "viz.n.next": "SONRAKİ  IP = {0:X4}h (bir sonraki komut)",
-  "viz.animSpeed": "Animasyon"
+  "viz.animSpeed": "Animasyon",
+  "cmd.checkUpdates": "Güncellemeleri denetle...",
+  "settings.checkUpdates": "Açılışta güncellemeleri denetle",
+  "update.title": "Güncelleme var",
+  "update.available": "emu8086ln {0} yayınlandı (sizdeki: {1}).",
+  "update.restartNote": "Güncelleme otomatik indirilip kurulur; bitince emu8086ln yeniden başlar.",
+  "update.install": "Şimdi güncelle",
+  "update.later": "Sonra",
+  "update.none": "En güncel sürümü kullanıyorsunuz ({0}).",
+  "update.failed": "Güncelleme denetlenemedi veya kurulamadı: {0}",
+  "update.found": "Yeni sürüm var: {0}",
+  "update.downloading": "Güncelleme indiriliyor... %{0}"
 }

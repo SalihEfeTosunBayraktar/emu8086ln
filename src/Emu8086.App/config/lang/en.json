@@ -229,5 +229,16 @@
   "viz.n.int": "INTERRUPT  INT {0:X2}h: the BIOS/DOS service runs",
   "viz.n.jump": "JUMP  execution continues at {0:X4}:{1:X4}",
   "viz.n.next": "NEXT  IP = {0:X4}h (the following instruction)",
-  "viz.animSpeed": "Animation"
+  "viz.animSpeed": "Animation",
+  "cmd.checkUpdates": "Check for updates...",
+  "settings.checkUpdates": "Check for updates at startup",
+  "update.title": "Update available",
+  "update.available": "emu8086ln {0} is available (you have {1}).",
+  "update.restartNote": "The update is downloaded and installed automatically; emu8086ln restarts when it is done.",
+  "update.install": "Update now",
+  "update.later": "Later",
+  "update.none": "You are using the latest version ({0}).",
+  "update.failed": "Could not check or install the update: {0}",
+  "update.found": "A new version is available: {0}",
+  "update.downloading": "Downloading update... {0}%"
 }

@@ -229,5 +229,16 @@
   "viz.n.int": "INTERRUPT  INT {0:X2}h: BIOS/DOS-Dienst läuft",
   "viz.n.jump": "SPRUNG  weiter bei {0:X4}:{1:X4}",
   "viz.n.next": "NÄCHSTER  IP = {0:X4}h (folgender Befehl)",
-  "viz.animSpeed": "Animation"
+  "viz.animSpeed": "Animation",
+  "cmd.checkUpdates": "Nach Updates suchen...",
+  "settings.checkUpdates": "Beim Start nach Updates suchen",
+  "update.title": "Update verfügbar",
+  "update.available": "emu8086ln {0} ist verfügbar (installiert: {1}).",
+  "update.restartNote": "Das Update wird automatisch heruntergeladen und installiert; danach startet emu8086ln neu.",
+  "update.install": "Jetzt aktualisieren",
+  "update.later": "Später",
+  "update.none": "Sie verwenden die neueste Version ({0}).",
+  "update.failed": "Update konnte nicht geprüft oder installiert werden: {0}",
+  "update.found": "Neue Version verfügbar: {0}",
+  "update.downloading": "Update wird heruntergeladen... {0}%"
 }

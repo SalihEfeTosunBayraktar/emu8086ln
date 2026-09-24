@@ -55,10 +55,12 @@ public partial class MainWindow : Window, IDialogService
         SettingsService.Changed += ApplyUiSettings;
         RestoreWindowPlacement();
         StateChanged += (_, _) => UpdateMaximizedLayout();
+        VersionText.Text = "v" + UpdateService.CurrentVersion.ToString(3);
         Loaded += (_, _) =>
         {
             _vm.Startup(Environment.GetCommandLineArgs().Skip(1).ToArray());
             _timer.Start();
+            if (SettingsService.Current.CheckForUpdates) _ = CheckForUpdatesAsync(silent: true);
         };
         Closing += OnClosing;
         PreviewKeyDown += (_, e) =>
@@ -328,6 +330,49 @@ public partial class MainWindow : Window, IDialogService
     }
 
     private void ApplyUiSettings() => FontSize = SettingsService.Current.UiFontSize;
+
+    private void OnCheckUpdatesClick(object sender, RoutedEventArgs e) => _ = CheckForUpdatesAsync(silent: false);
+
+    /// <summary>Checks GitHub for a newer release; when <paramref name="silent"/>, only reports a found update.</summary>
+    private async Task CheckForUpdatesAsync(bool silent)
+    {
+        var loc = Loc.Instance;
+        UpdateInfo? update;
+        try
+        {
+            update = await UpdateService.CheckAsync();
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or InvalidOperationException)
+        {
+            if (!silent) MessageDialog.Show(this, loc.Format("update.failed", ex.Message));
+            return;
+        }
+
+        if (update == null)
+        {
+            if (!silent) MessageDialog.Show(this, loc.Format("update.none", UpdateService.CurrentVersion.ToString(3)));
+            return;
+        }
+        _vm.Log(loc.Format("update.found", update.Version.ToString(3)), OutputKind.Info);
+        if (!UpdateDialog.Ask(this, update) || !_vm.ConfirmCloseAll()) return;
+
+        try
+        {
+            var progress = new Progress<int>(p => VersionText.Text = loc.Format("update.downloading", p));
+            if (await UpdateService.DownloadAndInstallAsync(update, progress))
+            {
+                _vm.Session.Stop();
+                SettingsService.Save();
+                Application.Current.Shutdown();
+            }
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or TaskCanceledException or IOException
+                                       or InvalidDataException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            VersionText.Text = "v" + UpdateService.CurrentVersion.ToString(3);
+            MessageDialog.Show(this, loc.Format("update.failed", ex.Message));
+        }
+    }
 
     private void OnVisualizerClick(object sender, RoutedEventArgs e)
     {

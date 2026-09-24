@@ -172,6 +172,9 @@
                         <MenuItem Header="{svc:Tr cmd.reference}" Click="OnReferenceClick">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.Book}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem Header="{svc:Tr cmd.checkUpdates}" Click="OnCheckUpdatesClick">
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Export}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.about}" Command="{Binding AboutCommand}">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.Help}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
@@ -607,6 +610,8 @@
                         <TextBlock Text="{Binding StateText}" Margin="7,0,16,0" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource Fg.Secondary}"/>
                     </StackPanel>
+                    <TextBlock x:Name="VersionText" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0"
+                               Foreground="{DynamicResource Fg.Muted}"/>
                     <TextBlock Text="{Binding PositionText}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                Foreground="{DynamicResource Fg.Secondary}" Style="{StaticResource Mono}"/>
                 </DockPanel>
