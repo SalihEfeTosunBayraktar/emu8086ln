@@ -8,6 +8,8 @@ public sealed class StepRecord
     public required CpuState Before { get; init; }
     public CpuState After { get; set; }
     public List<(int Address, byte OldValue, byte NewValue)> MemoryWrites { get; } = new();
+    /// <summary>Every byte read, including the instruction fetch (in order, may repeat).</summary>
+    public List<(int Address, byte Value)> MemoryReads { get; } = new();
     public List<(int Port, int Value, bool IsWrite, bool Word)> PortAccesses { get; } = new();
 }
 
@@ -37,6 +39,8 @@ public sealed class ExecutionHistory : IMemoryJournal
         _current?.MemoryWrites.Add((address, oldValue, 0));
     }
 
+    public void RecordRead(int address, byte value) => _current?.MemoryReads.Add((address, value));
+
     public void RecordPort(int port, int value, bool isWrite, bool word) =>
         _current?.PortAccesses.Add((port, value, isWrite, word));
 
@@ -51,7 +55,7 @@ public sealed class ExecutionHistory : IMemoryJournal
         for (int i = 0; i < record.MemoryWrites.Count; i++)
         {
             var w = record.MemoryWrites[i];
-            record.MemoryWrites[i] = (w.Address, w.OldValue, _memory.Read8(w.Address));
+            record.MemoryWrites[i] = (w.Address, w.OldValue, _memory.Peek(w.Address));
         }
         _records.AddLast(record);
         while (_records.Count > Capacity) _records.RemoveFirst();

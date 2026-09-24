@@ -158,6 +158,9 @@
                         <MenuItem Header="{svc:Tr cmd.toggleTheme}" Command="{Binding ToggleThemeCommand}">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.Moon}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem Header="{svc:Tr cmd.visualizer}" Click="OnVisualizerClick" InputGestureText="F12">
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Chip}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.settings}" Click="OnSettingsClick">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.Settings}" Style="{StaticResource Icon}" Width="14" Height="14"/></MenuItem.Icon>
                         </MenuItem>
@@ -238,6 +241,13 @@
                         </Button>
                         <Button Style="{StaticResource ToolButton}" Command="{Binding RunToCursorCommand}" ToolTip="{svc:Tr cmd.runToCursor}">
                             <Path Data="{StaticResource Icon.RunToCursor}" Style="{StaticResource Icon}"/>
+                        </Button>
+                        <Border Style="{StaticResource Divider}"/>
+                        <Button Style="{StaticResource ToolButton}" Click="OnVisualizerClick" ToolTip="{svc:Tr cmd.visualizer}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource Icon.Chip}" Style="{StaticResource Icon}"/>
+                                <TextBlock Text="{svc:Tr tool.visualizer}" Margin="6,0,2,0" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Button>
                         <Border Style="{StaticResource Divider}"/>
                         <TextBlock Text="{svc:Tr tool.speed}" Foreground="{DynamicResource Fg.Secondary}" VerticalAlignment="Center" Margin="4,0,8,0"/>

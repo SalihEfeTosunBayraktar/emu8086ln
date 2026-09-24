@@ -4,6 +4,7 @@ namespace Emu8086.Core.Cpu;
 public interface IMemoryJournal
 {
     void Record(int address, byte oldValue);
+    void RecordRead(int address, byte value);
 }
 
 /// <summary>1 MB real-mode address space with 20-bit wrap-around.</summary>
@@ -21,12 +22,20 @@ public sealed class Memory
 
     public static int Physical(ushort segment, ushort offset) => ((segment << 4) + offset) & AddressMask;
 
-    public byte Read8(int address) => _data[address & AddressMask];
+    public byte Read8(int address)
+    {
+        address &= AddressMask;
+        byte value = _data[address];
+        Journal?.RecordRead(address, value);
+        return value;
+    }
 
-    public ushort Read16(int address) =>
-        (ushort)(_data[address & AddressMask] | (_data[(address + 1) & AddressMask] << 8));
+    public ushort Read16(int address) => (ushort)(Read8(address) | (Read8(address + 1) << 8));
 
-    public byte Read8(ushort segment, ushort offset) => _data[Physical(segment, offset)];
+    public byte Read8(ushort segment, ushort offset) => Read8(Physical(segment, offset));
+
+    /// <summary>Reads without notifying the journal (for views and analysis).</summary>
+    public byte Peek(int address) => _data[address & AddressMask];
 
     /// <summary>Word access wraps inside the segment, as on a real 8086.</summary>
     public ushort Read16(ushort segment, ushort offset) =>

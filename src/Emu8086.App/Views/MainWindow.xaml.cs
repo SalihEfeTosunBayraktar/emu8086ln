@@ -27,6 +27,7 @@ public partial class MainWindow : Window, IDialogService
     private readonly System.Collections.ObjectModel.ObservableCollection<string> _portLog = new();
     private TextBox? _printerBox;
     private Window? _screenWindow;
+    private CpuVisualizerWindow? _visualizer;
 
     public MainWindow()
     {
@@ -60,6 +61,12 @@ public partial class MainWindow : Window, IDialogService
             _timer.Start();
         };
         Closing += OnClosing;
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key != Key.F12) return;
+            OnVisualizerClick(this, new RoutedEventArgs());
+            e.Handled = true;
+        };
     }
 
     #region Lifetime
@@ -318,6 +325,18 @@ public partial class MainWindow : Window, IDialogService
     }
 
     private void ApplyUiSettings() => FontSize = SettingsService.Current.UiFontSize;
+
+    private void OnVisualizerClick(object sender, RoutedEventArgs e)
+    {
+        if (_visualizer != null)
+        {
+            _visualizer.Activate();
+            return;
+        }
+        _visualizer = new CpuVisualizerWindow(this, _vm);
+        _visualizer.Closed += (_, _) => _visualizer = null;
+        _visualizer.Show();
+    }
 
     private void OnSettingsClick(object sender, RoutedEventArgs e) => new SettingsWindow(this, _vm).ShowDialog();
 

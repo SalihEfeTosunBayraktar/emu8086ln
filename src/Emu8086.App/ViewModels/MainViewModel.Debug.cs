@@ -1,5 +1,6 @@
 using System.IO;
 using Emu8086.App.Services;
+using Emu8086.Core.Analysis;
 using Emu8086.Core.Assembler;
 using Emu8086.Core.Cpu;
 using Emu8086.Core.Machine;
@@ -9,6 +10,26 @@ namespace Emu8086.App.ViewModels;
 public sealed partial class MainViewModel
 {
     private List<AsmDiagnostic> _lastDiagnostics = new();
+    private StepRecord? _lastAnalyzedRecord;
+
+    /// <summary>Analysis of the most recently executed instruction (for the CPU visualizer).</summary>
+    public StepAnalysis? LastStep { get; private set; }
+
+    public event Action<StepAnalysis?>? StepCompleted;
+
+    private void UpdateLastStep()
+    {
+        StepAnalysis? analysis = null;
+        lock (Session.Sync)
+        {
+            var record = Session.Machine.History.Last;
+            if (ReferenceEquals(record, _lastAnalyzedRecord)) return;
+            _lastAnalyzedRecord = record;
+            if (record != null) analysis = StepAnalyzer.Analyze(record, Session.Machine.Memory);
+        }
+        LastStep = analysis;
+        StepCompleted?.Invoke(analysis);
+    }
 
     #region Registers and flags
 
@@ -100,6 +121,7 @@ public sealed partial class MainViewModel
         ProgramLoaded?.Invoke();
         if (build.Result.Devices.Count > 0) DevicesRequested?.Invoke(build.Result.Devices);
         RefreshAll();
+        UpdateLastStep();
         return true;
     }
 
@@ -170,6 +192,7 @@ public sealed partial class MainViewModel
         }
         Session.StepBack();
         RefreshAll();
+        UpdateLastStep();
     }
 
     private void RunToCursor()
@@ -193,6 +216,7 @@ public sealed partial class MainViewModel
         StatusText = Loc.Instance["status.reset"];
         ProgramLoaded?.Invoke();
         RefreshAll();
+        UpdateLastStep();
     }
 
     private void ToggleBreakpointAtCaret()
@@ -240,6 +264,7 @@ public sealed partial class MainViewModel
                 break;
         }
         RefreshAll();
+        if (!Session.IsBusy) UpdateLastStep();
         System.Windows.Input.CommandManager.InvalidateRequerySuggested();
     }
 
@@ -272,6 +297,7 @@ public sealed partial class MainViewModel
             _lastSlowRefresh = DateTime.Now;
             RefreshLists();
             UpdateExecutionLine(running && Session.StepDelayMs == 0);
+            if (!running || Session.StepDelayMs > 0) UpdateLastStep();
         }
     }
 
