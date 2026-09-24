@@ -1,0 +1,12 @@
+<UserControl x:Class="Emu8086.App.Views.EditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avalon="http://icsharpcode.net/sharpdevelop/avalonedit">
+    <avalon:TextEditor x:Name="Editor"
+                       Background="{DynamicResource Bg.Editor}"
+                       Foreground="{DynamicResource Fg.Primary}"
+                       LineNumbersForeground="{DynamicResource Fg.Muted}"
+                       HorizontalScrollBarVisibility="Auto"
+                       VerticalScrollBarVisibility="Auto"
+                       Padding="6,4,0,0"/>
+</UserControl>

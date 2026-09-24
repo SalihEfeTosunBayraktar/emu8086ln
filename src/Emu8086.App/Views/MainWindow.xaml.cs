@@ -1,0 +1,376 @@
+using System.Collections.Concurrent;
+using System.Globalization;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Threading;
+using Emu8086.App.Controls;
+using Emu8086.App.Services;
+using Emu8086.App.ViewModels;
+using Emu8086.Core.Devices;
+using Microsoft.Win32;
+
+namespace Emu8086.App.Views;
+
+public partial class MainWindow : Window, IDialogService
+{
+    private const int RefreshIntervalMs = 33;
+    private const int PortLogCapacity = 200;
+
+    private readonly MainViewModel _vm;
+    private readonly DispatcherTimer _timer;
+    private readonly List<Action> _deviceRefreshers = new();
+    private readonly Dictionary<string, FrameworkElement> _deviceCards = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentQueue<string> _portEvents = new();
+    private readonly System.Collections.ObjectModel.ObservableCollection<string> _portLog = new();
+    private TextBox? _printerBox;
+    private Window? _screenWindow;
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        _vm = new MainViewModel(this);
+        DataContext = _vm;
+
+        Screen.Session = _vm.Session;
+        Hex.Session = _vm.Session;
+        BuildDevicePanel();
+
+        _vm.InputRequested += OnInputRequested;
+        _vm.DevicesRequested += ShowDevices;
+        _vm.ProgramLoaded += OnProgramLoaded;
+        _vm.Output.CollectionChanged += (_, _) =>
+        {
+            if (OutputList.Items.Count > 0) OutputList.ScrollIntoView(OutputList.Items[^1]);
+        };
+        _vm.Session.Machine.Ports.Accessed += OnPortAccessed;
+
+        _timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(RefreshIntervalMs) };
+        _timer.Tick += OnTick;
+
+        ApplyUiSettings();
+        SettingsService.Changed += ApplyUiSettings;
+        RestoreWindowPlacement();
+        StateChanged += (_, _) => UpdateMaximizedLayout();
+        Loaded += (_, _) =>
+        {
+            _vm.Startup(Environment.GetCommandLineArgs().Skip(1).ToArray());
+            _timer.Start();
+        };
+        Closing += OnClosing;
+    }
+
+    #region Lifetime
+
+    private void OnTick(object? sender, EventArgs e)
+    {
+        _vm.Tick();
+        Screen.Hint = _vm.State == SessionState.WaitingInput ? Loc.Instance["screen.hint"] : "";
+        Screen.Refresh();
+        if (MemoryTab.IsSelected) Hex.Refresh();
+        if (DevicesTab.IsSelected)
+        {
+            foreach (var refresh in _deviceRefreshers) refresh();
+            DrainPortLog();
+        }
+    }
+
+    private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (!_vm.ConfirmCloseAll())
+        {
+            e.Cancel = true;
+            return;
+        }
+        _timer.Stop();
+        SaveWindowPlacement();
+        _screenWindow?.Close();
+        _vm.Dispose();
+    }
+
+    private void RestoreWindowPlacement()
+    {
+        var s = SettingsService.Current;
+        Width = Math.Max(MinWidth, s.WindowWidth);
+        Height = Math.Max(MinHeight, s.WindowHeight);
+        if (s.WindowMaximized) WindowState = WindowState.Maximized;
+    }
+
+    private void SaveWindowPlacement()
+    {
+        var s = SettingsService.Current;
+        s.WindowMaximized = WindowState == WindowState.Maximized;
+        if (WindowState == WindowState.Normal)
+        {
+            s.WindowWidth = Width;
+            s.WindowHeight = Height;
+        }
+    }
+
+    /// <summary>A maximized chrome-less window extends past the screen edge; compensate with a margin.</summary>
+    private void UpdateMaximizedLayout()
+    {
+        bool max = WindowState == WindowState.Maximized;
+        RootBorder.Margin = max ? new Thickness(7) : new Thickness(0);
+        RootBorder.BorderThickness = max ? new Thickness(0) : new Thickness(1);
+        MaximizeIcon.Data = (Geometry)FindResource(max ? "Icon.Restore" : "Icon.Maximize");
+    }
+
+    private void OnMinimizeClick(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void OnMaximizeClick(object sender, RoutedEventArgs e) =>
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
+    private void OnExitClick(object sender, RoutedEventArgs e) => Close();
+
+    #endregion
+
+    #region Emulator events
+
+    private void OnInputRequested()
+    {
+        if (_screenWindow == null) ScreenTab.IsSelected = true;
+        Screen.Focus();
+    }
+
+    private void OnProgramLoaded()
+    {
+        Screen.Invalidate();
+        var cpu = _vm.Session.Machine.Cpu;
+        Hex.Segment = cpu.DS;
+        Hex.Offset = 0;
+        MemoryAddress.Text = $"{cpu.DS:X4}:0000";
+        _portLog.Clear();
+        _printerBox?.Clear();
+    }
+
+    private void OnPortAccessed(int port, int value, bool isWrite, bool word)
+    {
+        string text = $"{(isWrite ? "OUT" : "IN ")}  {port,5}  ({port:X4}h)  {(word ? value.ToString("X4") : value.ToString("X2"))}h";
+        _portEvents.Enqueue(text);
+        while (_portEvents.Count > PortLogCapacity) _portEvents.TryDequeue(out _);
+    }
+
+    private void DrainPortLog()
+    {
+        while (_portEvents.TryDequeue(out var line))
+        {
+            _portLog.Insert(0, line);
+            if (_portLog.Count > PortLogCapacity) _portLog.RemoveAt(_portLog.Count - 1);
+        }
+        if (_printerBox != null)
+        {
+            string text = _vm.Session.Machine.PrinterText;
+            if (_printerBox.Text.Length != text.Length) _printerBox.Text = text;
+        }
+    }
+
+    #endregion
+
+    #region Devices
+
+    private void BuildDevicePanel()
+    {
+        var ports = _vm.Session.Machine.Ports;
+        AddDevice(new TrafficLightsView { Device = ports.Find<TrafficLights>() }, "traffic_lights", "device.trafficLights", "device.trafficLights.info");
+        AddDevice(new StepperMotorView { Device = ports.Find<StepperMotor>() }, "stepper_motor", "device.stepper", "device.stepper.info");
+        AddDevice(new LedDisplayView { Device = ports.Find<LedDisplay>() }, "led_display", "device.led", "device.led.info");
+        AddDevice(new ThermometerView { Device = ports.Find<Thermometer>() }, "thermometer", "device.thermometer", "device.thermometer.info");
+        AddDevice(new RobotView { Device = ports.Find<Robot>() }, "robot", "device.robot", "device.robot.info");
+
+        _printerBox = new TextBox
+        {
+            IsReadOnly = true, Height = 120, Style = (Style)FindResource("MonoBox"),
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto, TextWrapping = TextWrapping.Wrap,
+        };
+        AddCard(_printerBox, "printer", "device.printer", "device.printer.info");
+
+        var portList = new ListBox { ItemsSource = _portLog, Height = 160, FontFamily = (FontFamily)FindResource("Font.Mono"), FontSize = 12 };
+        AddCard(portList, "ports", "device.ports", "device.ports.info");
+    }
+
+    private void AddDevice<T>(DeviceView<T> view, string id, string titleKey, string infoKey) where T : DeviceBase
+    {
+        _deviceRefreshers.Add(view.Refresh);
+        AddCard(view, id, titleKey, infoKey);
+    }
+
+    private void AddCard(FrameworkElement content, string id, string titleKey, string infoKey)
+    {
+        var title = new TextBlock { FontWeight = FontWeights.SemiBold, FontSize = 14 };
+        title.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding($"[{titleKey}]") { Source = Loc.Instance });
+        var info = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 12, Margin = new Thickness(0, 2, 0, 8) };
+        info.SetResourceReference(TextBlock.ForegroundProperty, "Fg.Secondary");
+        info.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding($"[{infoKey}]") { Source = Loc.Instance });
+
+        var stack = new StackPanel();
+        stack.Children.Add(title);
+        stack.Children.Add(info);
+        stack.Children.Add(content);
+        var card = new Border { Padding = new Thickness(12), Margin = new Thickness(0, 6, 0, 6), CornerRadius = new CornerRadius(8), Child = stack };
+        card.SetResourceReference(Border.BackgroundProperty, "Bg.Panel2");
+        card.SetResourceReference(Border.BorderBrushProperty, "Border");
+        card.BorderThickness = new Thickness(1);
+        DevicesPanel.Children.Add(card);
+        _deviceCards[id] = card;
+    }
+
+    private void ShowDevices(IReadOnlyList<string> devices)
+    {
+        var card = devices.Select(d => _deviceCards.GetValueOrDefault(d)).FirstOrDefault(c => c != null);
+        if (card == null) return;
+        DevicesTab.IsSelected = true;
+        Dispatcher.BeginInvoke(() => card.BringIntoView(), DispatcherPriority.Loaded);
+    }
+
+    #endregion
+
+    #region Panels
+
+    private void OnProjectFileDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ProjectList.SelectedItem is ProjectFileItem item) _vm.OpenProjectFileCommand.Execute(item);
+    }
+
+    private void OnDiagnosticDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ListBox { SelectedItem: DiagnosticItem d }) _vm.GoToDiagnosticCommand.Execute(d);
+    }
+
+    private void OnRegisterKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || sender is not TextBox box) return;
+        box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+        Keyboard.ClearFocus();
+        _vm.RefreshAll();
+        e.Handled = true;
+    }
+
+    private void OnMemoryAddressKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        GoToMemoryAddress();
+        e.Handled = true;
+    }
+
+    private void OnMemoryGoClick(object sender, RoutedEventArgs e) => GoToMemoryAddress();
+
+    private void GoToMemoryAddress()
+    {
+        string text = MemoryAddress.Text.Trim().TrimEnd('h', 'H');
+        string[] parts = text.Split(':');
+        bool ok = parts.Length switch
+        {
+            2 => int.TryParse(parts[0], NumberStyles.HexNumber, null, out int seg) & int.TryParse(parts[1], NumberStyles.HexNumber, null, out int off)
+                 && SetMemoryView(seg, off),
+            1 => int.TryParse(parts[0], NumberStyles.HexNumber, null, out int phys) && SetMemoryView(phys >> 4 & 0xF000, phys & 0xFFFF),
+            _ => false,
+        };
+        if (!ok) MemoryAddress.SelectAll();
+    }
+
+    private bool SetMemoryView(int segment, int offset)
+    {
+        Hex.Segment = segment & 0xFFFF;
+        Hex.Offset = offset & 0xFFFF;
+        MemoryAddress.Text = $"{Hex.Segment:X4}:{offset & 0xFFFF:X4}";
+        return true;
+    }
+
+    private void OnMemoryPresetClick(object sender, RoutedEventArgs e)
+    {
+        var cpu = _vm.Session.Machine.Cpu;
+        _ = (sender as Button)?.Tag switch
+        {
+            "CS" => SetMemoryView(cpu.CS, cpu.IP),
+            "DS" => SetMemoryView(cpu.DS, 0),
+            "SS" => SetMemoryView(cpu.SS, cpu.SP),
+            _ => SetMemoryView(0xB800, 0),
+        };
+    }
+
+    /// <summary>Moves the emulator screen into its own resizable window (and back when closed).</summary>
+    private void OnFloatScreenClick(object sender, RoutedEventArgs e)
+    {
+        if (_screenWindow != null)
+        {
+            _screenWindow.Activate();
+            return;
+        }
+        ScreenHost.Children.Remove(Screen);
+        var host = new Grid { Background = Brushes.Black };
+        host.Children.Add(Screen);
+        _screenWindow = new Window
+        {
+            Title = Loc.Instance["panel.screen"], Owner = this, Width = 820, Height = 640, Content = host,
+            Background = Brushes.Black,
+        };
+        _screenWindow.Closed += (_, _) =>
+        {
+            host.Children.Remove(Screen);
+            ScreenHost.Children.Add(Screen);
+            _screenWindow = null;
+        };
+        _screenWindow.Show();
+    }
+
+    private void ApplyUiSettings() => FontSize = SettingsService.Current.UiFontSize;
+
+    private void OnSettingsClick(object sender, RoutedEventArgs e) => new SettingsWindow(this, _vm).ShowDialog();
+
+    private void OnReferenceClick(object sender, RoutedEventArgs e) => new ReferenceWindow { Owner = this }.Show();
+
+    #endregion
+
+    #region IDialogService
+
+    public string? PickProjectFile()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = $"{Loc.Instance["filter.project"]}|*{Project.Extension}",
+            InitialDirectory = Directory.Exists(AppPaths.DefaultProjectsDirectory) ? AppPaths.DefaultProjectsDirectory : null,
+        };
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+    }
+
+    public string? PickSourceFile()
+    {
+        var dialog = new OpenFileDialog { Filter = $"{Loc.Instance["filter.source"]}|*.asm;*.inc|{Loc.Instance["filter.all"]}|*.*" };
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+    }
+
+    public string? PickSaveFile(string defaultName, string extension)
+    {
+        var dialog = new SaveFileDialog
+        {
+            FileName = defaultName,
+            DefaultExt = extension,
+            Filter = $"{extension.TrimStart('.').ToUpperInvariant()}|*{extension}",
+        };
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+    }
+
+    public NewProjectRequest? AskNewProject()
+    {
+        var dialog = new NewProjectDialog { Owner = this };
+        return dialog.ShowDialog() == true ? dialog.Result : null;
+    }
+
+    public string? AskText(string title, string prompt, string initial)
+    {
+        var dialog = new InputDialog(title, prompt, initial) { Owner = this };
+        return dialog.ShowDialog() == true ? dialog.Value : null;
+    }
+
+    public ConfirmResult Confirm(string message) => MessageDialog.Ask(this, message);
+
+    public void ShowMessage(string message) => MessageDialog.Show(this, message);
+
+    public void ShowAbout() => new AboutWindow { Owner = this }.ShowDialog();
+
+    #endregion
+}

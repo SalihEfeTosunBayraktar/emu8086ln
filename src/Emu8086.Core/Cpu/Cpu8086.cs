@@ -299,7 +299,7 @@ public sealed partial class Cpu8086
         _repPrefix = 0;
 
         var result = ExecuteInstruction();
-        InstructionCount++;
+        if (result != StepResult.Waiting) InstructionCount++;
 
         if (trap && result == StepResult.Ok && !Halted)
             Interrupt(1);

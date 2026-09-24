@@ -1,0 +1,7 @@
+[
+  { "id": "hello_com", "file": "hello_com.asm", "outputName": "main.asm" },
+  { "id": "hello_exe", "file": "hello_exe.asm", "outputName": "main.asm" },
+  { "id": "input_com", "file": "input_com.asm", "outputName": "main.asm" },
+  { "id": "empty_com", "file": "empty_com.asm", "outputName": "main.asm" },
+  { "id": "empty_exe", "file": "empty_exe.asm", "outputName": "main.asm" }
+]
