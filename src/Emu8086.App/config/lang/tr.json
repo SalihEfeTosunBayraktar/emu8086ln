@@ -276,5 +276,11 @@
   "variables.format": "Gösterim",
   "variables.editHint": "Değiştirmek için değişkene çift tıkla",
   "variables.editTitle": "{0} düzenle",
-  "variables.editPrompt": "Yeni değer(ler), virgülle ayrılmış. Sayı, ifade ya da bayt değişkenleri için 'metin':"
+  "variables.editPrompt": "Yeni değer(ler), virgülle ayrılmış. Sayı, ifade ya da bayt değişkenleri için 'metin':",
+  "cmd.writeFloppy": "Programı sanal diskete yaz...",
+  "cmd.bootFloppy": "Sanal disketten boot et (A:)",
+  "floppy.writeTitle": "Diskete yaz",
+  "floppy.writePrompt": "Başlangıç sektörü (1 = boot sektörü, 1 - 2880):",
+  "floppy.badSector": "1 ile 2880 arasında bir sektör numarası gir.",
+  "floppy.written": "{0} sektör, {1}. sektörden itibaren {2} dosyasına yazıldı"
 }

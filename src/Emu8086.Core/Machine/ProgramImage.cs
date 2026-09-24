@@ -145,6 +145,16 @@ public sealed class ProgramImage
         return image;
     }
 
+    /// <summary>A boot sector read from a floppy, loaded at 0000:7C00.</summary>
+    public static ProgramImage FromBootSector(byte[] sector) => new()
+    {
+        Format = OutputFormat.Boot,
+        Bytes = sector,
+        SegmentParagraphs = new int[1],
+        Origin = Machine.BootOffset,
+        EntryOffset = Machine.BootOffset,
+    };
+
     /// <summary>Serialises the image in its DOS file format.</summary>
     public byte[] ToFileBytes()
     {

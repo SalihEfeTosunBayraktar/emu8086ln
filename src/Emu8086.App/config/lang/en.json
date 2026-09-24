@@ -276,5 +276,11 @@
   "variables.format": "Show as",
   "variables.editHint": "Double-click a variable to change it",
   "variables.editTitle": "Edit {0}",
-  "variables.editPrompt": "New value(s), comma separated. Numbers, expressions or 'text' for byte variables:"
+  "variables.editPrompt": "New value(s), comma separated. Numbers, expressions or 'text' for byte variables:",
+  "cmd.writeFloppy": "Write program to virtual floppy...",
+  "cmd.bootFloppy": "Boot from virtual floppy (A:)",
+  "floppy.writeTitle": "Write to floppy",
+  "floppy.writePrompt": "First sector (1 = boot sector, 1 - 2880):",
+  "floppy.badSector": "Please enter a sector number between 1 and 2880.",
+  "floppy.written": "{0} sector(s) written from sector {1} to {2}"
 }

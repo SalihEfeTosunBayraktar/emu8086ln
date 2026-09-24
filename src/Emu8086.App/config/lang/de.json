@@ -276,5 +276,11 @@
   "variables.format": "Anzeigen als",
   "variables.editHint": "Doppelklick zum Ändern",
   "variables.editTitle": "{0} bearbeiten",
-  "variables.editPrompt": "Neue(r) Wert(e), durch Komma getrennt. Zahlen, Ausdrücke oder 'Text' für Byte-Variablen:"
+  "variables.editPrompt": "Neue(r) Wert(e), durch Komma getrennt. Zahlen, Ausdrücke oder 'Text' für Byte-Variablen:",
+  "cmd.writeFloppy": "Programm auf virtuelle Diskette schreiben...",
+  "cmd.bootFloppy": "Von virtueller Diskette booten (A:)",
+  "floppy.writeTitle": "Auf Diskette schreiben",
+  "floppy.writePrompt": "Startsektor (1 = Bootsektor, 1 - 2880):",
+  "floppy.badSector": "Bitte eine Sektornummer zwischen 1 und 2880 eingeben.",
+  "floppy.written": "{0} Sektor(en) ab Sektor {1} in {2} geschrieben"
 }

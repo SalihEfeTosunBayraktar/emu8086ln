@@ -314,3 +314,58 @@ public class RegisterPresetTests
         Assert.Contains(r.Diagnostics, d => d.Code == Emu8086.Core.Assembler.AsmErrorCode.UnexpectedDirective);
     }
 }
+
+public class FloppyTests
+{
+    [Fact]
+    public void BootSectorLoadsTheNextSectorWithInt13()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "emu8086ln-tests", Guid.NewGuid().ToString("N"));
+        var floppy = new VirtualFloppy(Path.Combine(dir, "floppy.img"));
+
+        // Sector 2 (LBA 1): a message the boot sector prints.
+        floppy.Write(1, System.Text.Encoding.ASCII.GetBytes("Loaded from sector 2!$"));
+
+        var boot = ProgramImage.Link(TestHost.AssembleOk("""
+            #make_BOOT#
+            org 7C00h
+                mov ax, 0
+                mov ds, ax
+                mov es, ax
+                mov ah, 02h         ; read sectors
+                mov al, 1           ; count
+                mov ch, 0           ; cylinder
+                mov cl, 2           ; sector (1-based)
+                mov dh, 0           ; head
+                mov dl, 0           ; drive A:
+                mov bx, 8000h       ; ES:BX buffer
+                int 13h
+                jc failed
+                mov dx, 8000h
+                mov ah, 09h
+                int 21h
+                hlt
+            failed:
+                mov dx, offset err
+                mov ah, 09h
+                int 21h
+                hlt
+            err db 'disk error$'
+            """));
+        floppy.Write(0, boot.Bytes);
+
+        var m = new Machine(Path.Combine(dir, "C"), floppy.ImagePath);
+        m.Load(ProgramImage.FromBootSector(floppy.Read(0, 1)));
+        for (int i = 0; i < 1000 && !m.IsStopped; i++) m.Step();
+        Assert.Equal("Loaded from sector 2!", m.Video.ReadText());
+    }
+
+    [Fact]
+    public void ChsToLba()
+    {
+        Assert.Equal(0, VirtualFloppy.ToLba(0, 0, 1));
+        Assert.Equal(18, VirtualFloppy.ToLba(0, 1, 1));
+        Assert.Equal(36, VirtualFloppy.ToLba(1, 0, 1));
+        Assert.Equal(-1, VirtualFloppy.ToLba(0, 0, 0));
+    }
+}

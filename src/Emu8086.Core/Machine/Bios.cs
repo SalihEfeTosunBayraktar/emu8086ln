@@ -26,6 +26,7 @@ public sealed class Bios : IInterruptHandler
 
     public void Reset()
     {
+        _diskStatus = 0;
         _line = null;
         _waitUntil = null;
     }
@@ -42,6 +43,7 @@ public sealed class Bios : IInterruptHandler
         0x10 => Int10(cpu),
         0x11 => Set(() => cpu.AX = 0x0021),
         0x12 => Set(() => cpu.AX = 640),
+        0x13 => Int13(cpu),
         0x15 => Int15(cpu),
         0x16 => Int16(cpu),
         0x17 => Int17(cpu),
@@ -178,6 +180,98 @@ public sealed class Bios : IInterruptHandler
     #endregion
 
     #region Keyboard, timer, misc BIOS
+
+    #region INT 13h disk
+
+    private const byte DiskOk = 0x00;
+    private const byte DiskBadCommand = 0x01;
+    private const byte DiskSectorNotFound = 0x04;
+    private const byte DiskTimeout = 0x80;
+    private byte _diskStatus;
+
+    /// <summary>Floppy services for drive A: (DL = 0) backed by the virtual floppy image.</summary>
+    private InterruptResult Int13(Cpu8086 cpu)
+    {
+        void Finish(byte status, byte? count = null)
+        {
+            _diskStatus = status;
+            cpu.AH = status;
+            if (count is byte c) cpu.AL = c;
+            cpu.SetFlag(CpuFlags.CF, status != DiskOk);
+        }
+
+        if (cpu.AH is not (0x00 or 0x01) && cpu.DL != 0)
+        {
+            Finish(DiskTimeout, 0);
+            return InterruptResult.Handled;
+        }
+
+        switch (cpu.AH)
+        {
+            case 0x00:
+                Finish(DiskOk);
+                break;
+            case 0x01:
+                cpu.AL = _diskStatus;
+                Finish(DiskOk);
+                cpu.AL = _diskStatus;
+                break;
+            case 0x02:
+            case 0x03:
+            {
+                int cylinder = cpu.CH | ((cpu.CL & 0xC0) << 2);
+                int lba = VirtualFloppy.ToLba(cylinder, cpu.DH, cpu.CL & 0x3F);
+                int count = cpu.AL;
+                if (lba < 0 || count == 0 || lba + count > VirtualFloppy.TotalSectors)
+                {
+                    Finish(DiskSectorNotFound, 0);
+                    break;
+                }
+                try
+                {
+                    int bytes = count * VirtualFloppy.SectorSize;
+                    if (cpu.AH == 0x02)
+                    {
+                        var data = _m.Floppy.Read(lba, count);
+                        for (int i = 0; i < bytes; i++) Mem.Write8(cpu.ES, (ushort)(cpu.BX + i), data[i]);
+                    }
+                    else
+                    {
+                        var data = new byte[bytes];
+                        for (int i = 0; i < bytes; i++) data[i] = Mem.Read8(cpu.ES, (ushort)(cpu.BX + i));
+                        _m.Floppy.Write(lba, data);
+                    }
+                    Finish(DiskOk, (byte)count);
+                }
+                catch (IOException)
+                {
+                    Finish(DiskTimeout, 0);
+                }
+                break;
+            }
+            case 0x04:
+                Finish(DiskOk, cpu.AL); // verify
+                break;
+            case 0x08:
+                cpu.BL = 4; // 1.44 MB
+                cpu.CH = VirtualFloppy.Cylinders - 1;
+                cpu.CL = VirtualFloppy.SectorsPerTrack;
+                cpu.DH = VirtualFloppy.Heads - 1;
+                cpu.DL = 1;
+                Finish(DiskOk);
+                break;
+            case 0x15:
+                Finish(DiskOk);
+                cpu.AH = 1; // floppy without change-line
+                break;
+            default:
+                Finish(DiskBadCommand);
+                break;
+        }
+        return InterruptResult.Handled;
+    }
+
+    #endregion
 
     private InterruptResult Int16(Cpu8086 cpu)
     {

@@ -179,38 +179,85 @@ public sealed partial class MainViewModel
         if (path == null) return;
         try
         {
-            var image = ProgramImage.FromFile(File.ReadAllBytes(path), Path.GetExtension(path));
-            var (text, listing) = BinaryDisassembly.Create(image, Path.GetFileName(path));
-            string folder = Path.Combine(AppPaths.DocumentsDirectory, "Disassembly");
-            Directory.CreateDirectory(folder);
-            string target = Path.Combine(folder, Path.GetFileNameWithoutExtension(path) + ".asm");
-            File.WriteAllText(target, text);
-
-            var existing = Documents.FirstOrDefault(d => string.Equals(d.FilePath, target, StringComparison.OrdinalIgnoreCase));
-            if (existing != null) Documents.Remove(existing);
-            var doc = OpenDocument(target);
-            if (doc == null) return;
-
-            var result = new AssemblyResult { Format = image.Format };
-            result.Listing.AddRange(listing);
-            Session.Load(new BuildOutput(result, image, target));
-            _binaryDocument = doc;
-            _buildDocument = doc;
-            _builtText = doc.Document.Text;
-            _lastDiagnostics = new();
-            RefreshDiagnosticsText();
-            SyncBreakpoints(doc);
-            _baseline = Session.Machine.Cpu.GetState();
-            Log(Loc.Instance.Format("output.binaryLoaded", Path.GetFileName(path), image.Format.ToString().ToUpperInvariant(), image.Bytes.Length), OutputKind.Success);
-            StatusText = Loc.Instance["status.buildOk"];
-            ProgramLoaded?.Invoke();
-            RefreshAll();
-            UpdateLastStep();
+            LoadImage(ProgramImage.FromFile(File.ReadAllBytes(path), Path.GetExtension(path)), Path.GetFileName(path));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
         {
             _dialogs.ShowMessage(e.Message);
         }
+    }
+
+    /// <summary>Loads sector 1 of the virtual floppy at 0000:7C00, like a PC booting from drive A:.</summary>
+    private void BootFromFloppy()
+    {
+        try
+        {
+            var sector = Session.Machine.Floppy.Read(0, 1);
+            LoadImage(ProgramImage.FromBootSector(sector), Machine.FloppyFileName);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            _dialogs.ShowMessage(e.Message);
+        }
+    }
+
+    /// <summary>Assembles the program and writes it to the virtual floppy from the chosen sector.</summary>
+    private void WriteToFloppy()
+    {
+        if (!Build() || Session.Build?.Image is not { } image) return;
+        var loc = Loc.Instance;
+        string defaultSector = image.Format == OutputFormat.Boot ? "1" : "2";
+        string? answer = _dialogs.AskText(loc["floppy.writeTitle"], loc["floppy.writePrompt"], defaultSector);
+        if (answer == null) return;
+        if (!int.TryParse(answer, out int sector) || sector < 1 || sector > VirtualFloppy.TotalSectors)
+        {
+            _dialogs.ShowMessage(loc["floppy.badSector"]);
+            return;
+        }
+        try
+        {
+            Session.Machine.Floppy.Write(sector - 1, image.Bytes);
+            int count = (image.Bytes.Length + VirtualFloppy.SectorSize - 1) / VirtualFloppy.SectorSize;
+            Log(loc.Format("floppy.written", count, sector, Session.Machine.Floppy.ImagePath), OutputKind.Success);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentOutOfRangeException)
+        {
+            _dialogs.ShowMessage(e.Message);
+        }
+    }
+
+    /// <summary>
+    /// Loads a program image without source: it goes into memory and its disassembly opens in
+    /// the editor, mapped line by line to addresses so it can be stepped and given breakpoints.
+    /// </summary>
+    private void LoadImage(ProgramImage image, string name)
+    {
+        var (text, listing) = BinaryDisassembly.Create(image, name);
+        string folder = Path.Combine(AppPaths.DocumentsDirectory, "Disassembly");
+        Directory.CreateDirectory(folder);
+        string target = Path.Combine(folder, Path.GetFileNameWithoutExtension(name) + ".asm");
+        File.WriteAllText(target, text);
+
+        var existing = Documents.FirstOrDefault(d => string.Equals(d.FilePath, target, StringComparison.OrdinalIgnoreCase));
+        if (existing != null) Documents.Remove(existing);
+        var doc = OpenDocument(target);
+        if (doc == null) return;
+
+        var result = new AssemblyResult { Format = image.Format };
+        result.Listing.AddRange(listing);
+        Session.Load(new BuildOutput(result, image, target));
+        _binaryDocument = doc;
+        _buildDocument = doc;
+        _builtText = doc.Document.Text;
+        _lastDiagnostics = new();
+        RefreshDiagnosticsText();
+        SyncBreakpoints(doc);
+        _baseline = Session.Machine.Cpu.GetState();
+        Log(Loc.Instance.Format("output.binaryLoaded", name, image.Format.ToString().ToUpperInvariant(), image.Bytes.Length), OutputKind.Success);
+        StatusText = Loc.Instance["status.buildOk"];
+        ProgramLoaded?.Invoke();
+        RefreshAll();
+        UpdateLastStep();
     }
 
     /// <summary>Writes &lt;name&gt;.lst and &lt;name&gt;.symbol next to the source and opens the listing.</summary>

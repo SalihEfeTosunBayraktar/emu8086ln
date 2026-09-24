@@ -33,8 +33,13 @@ public sealed class Machine : IDisposable
 
     private readonly StringBuilder _printer = new();
 
-    public Machine(string diskRoot)
+    public const string FloppyFileName = "floppy_0.img";
+
+    /// <param name="diskRoot">Folder used as drive C:.</param>
+    /// <param name="floppyImage">Floppy image file; defaults to floppy_0.img next to the C: folder.</param>
+    public Machine(string diskRoot, string? floppyImage = null)
     {
+        Floppy = new VirtualFloppy(floppyImage ?? Path.Combine(Path.GetDirectoryName(Path.GetFullPath(diskRoot))!, FloppyFileName));
         Memory = new Memory();
         Cpu = new Cpu8086(Memory);
         Video = new Video(Memory);
@@ -55,6 +60,7 @@ public sealed class Machine : IDisposable
     public Keyboard Keyboard { get; }
     public PortBus Ports { get; }
     public VirtualDisk Disk { get; }
+    public VirtualFloppy Floppy { get; }
     public Bios Bios { get; }
     public ExecutionHistory History { get; }
     public MouseState Mouse { get; } = new();

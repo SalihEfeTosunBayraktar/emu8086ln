@@ -150,6 +150,13 @@
                         <Separator/>
                         <MenuItem Header="{svc:Tr cmd.toggleBreakpoint}" Command="{Binding ToggleBreakpointCommand}" InputGestureText="F9"/>
                         <MenuItem Header="{svc:Tr cmd.clearBreakpoints}" Command="{Binding ClearBreakpointsCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="{svc:Tr cmd.writeFloppy}" Command="{Binding WriteFloppyCommand}">
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Save}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="{svc:Tr cmd.bootFloppy}" Command="{Binding BootFloppyCommand}">
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Run}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
+                        </MenuItem>
                     </MenuItem>
                     <MenuItem Header="{svc:Tr menu.examples}" ItemsSource="{Binding Examples}">
                         <MenuItem.ItemContainerStyle>
