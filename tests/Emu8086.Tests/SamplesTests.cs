@@ -80,4 +80,31 @@ public class SamplesTests
         Assert.Equal(StopReason.Terminated, m.StopReason);
         Assert.StartsWith("Merhaba Dunya!", m.Video.ReadText());
     }
+
+    [Fact]
+    public void Bootloader() => Assert.Equal("Hello from the boot sector!", RunExample("19_bootloader.asm").Video.ReadText());
+
+    [Fact]
+    public void CustomInterrupt() => Assert.Equal("AABB", RunExample("20_custom_interrupt.asm").Video.ReadText());
+
+    [Fact]
+    public void StackParameters() => Assert.Equal("345", RunExample("21_stack_parameters.asm").Video.ReadText());
+
+    [Fact]
+    public void StringSearch() => Assert.Equal("found at position 4", RunExample("22_string_search.asm").Video.ReadText());
+
+    [Fact]
+    public void Bcd() => Assert.Equal("83", RunExample("23_bcd_arithmetic.asm").Video.ReadText());
+
+    [Fact]
+    public void NumberFormats() =>
+        Assert.Equal("bin: 0000011111101010\nhex: 07EA\ndec: 2026", RunExample("24_number_formats.asm").Video.ReadText());
+
+    [Fact]
+    public void Fibonacci() =>
+        Assert.Equal("0 1 1 2 3 5 8 13 21 34 55 89 144 233 377", RunExample("25_fibonacci.asm").Video.ReadText());
+
+    [Fact]
+    public void FarCall() =>
+        Assert.Equal("In the main segment\nIn the library segment", RunExample("28_far_call.asm").Video.ReadText());
 }
