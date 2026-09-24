@@ -82,6 +82,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ClearOutputCommand = new RelayCommand(Output.Clear);
 
         UpdateStateText();
+        InitializeAutoSave();
     }
 
     public EmulatorSession Session { get; }

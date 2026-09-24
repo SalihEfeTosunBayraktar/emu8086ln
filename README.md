@@ -25,6 +25,7 @@ Source-compatible with emu8086 programs (`#make_COM#`, `emu8086.inc`, virtual de
   files without source, emu8086 `#AX=...#` register presets, number converter / calculator, ASCII table.
 - **Hardware extras** – virtual 1.44 MB floppy with INT 13h (write a program to it and boot from it),
   optional `emu8086.io` shared port file so external programs can act as devices.
+- **Auto save** – off, every N seconds, or smart (waits for a pause in typing, saves bigger edits and line changes at once, small edits after N seconds, everything when you leave the file).
 - **Updates** – shows the version, checks GitHub Releases on request (or at startup if enabled) and installs updates.
 
 ## Download

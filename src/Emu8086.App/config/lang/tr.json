@@ -286,5 +286,14 @@
   "settings.emulator": "EMÜLATÖR",
   "settings.externalIo": "Harici cihazlar: portları emu8086.io dosyasına yansıt",
   "settings.externalIoHint": "Dahili cihazı olmayan portlar {0} dosyasından okunur ve oraya yazılır (port başına bir bayt); böylece başka programlar cihaz gibi davranabilir.",
-  "settings.completionHelp": "Önerilerde yardım balonu göster (açıklama ve örnek)"
+  "settings.completionHelp": "Önerilerde yardım balonu göster (açıklama ve örnek)",
+  "settings.saving": "KAYDETME",
+  "settings.autoSave": "Otomatik kaydet",
+  "settings.autoSaveInterval": "Süre (saniye)",
+  "settings.autoSaveHint": "Aralıklı: her N saniyede kaydeder. Akıllı: yazarken asla kaydetmez; 2 saniyelik duraksamadan sonra büyük değişiklikleri ve eklenen/silinen satırları hemen, küçük değişiklikleri N saniye sonra kaydeder; başka dosyaya veya uygulamaya geçince her şeyi kaydeder.",
+  "autosave.Off": "Kapalı",
+  "autosave.Interval": "Her N saniyede",
+  "autosave.Smart": "Akıllı",
+  "autosave.done": "Otomatik kaydedildi: {0}",
+  "autosave.failed": "{0} otomatik kaydedilemedi: {1}"
 }

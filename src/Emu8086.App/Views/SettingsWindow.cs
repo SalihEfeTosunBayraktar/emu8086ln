@@ -96,6 +96,18 @@ public sealed class SettingsWindow
         };
         Row(loc["settings.language"], language);
 
+        Section(loc["settings.saving"]);
+        var modes = new[] { Emu8086.Core.Editing.AutoSaveMode.Off, Emu8086.Core.Editing.AutoSaveMode.Interval, Emu8086.Core.Editing.AutoSaveMode.Smart };
+        var mode = new ComboBox
+        {
+            ItemsSource = modes.Select(m => loc["autosave." + m]).ToList(),
+            SelectedIndex = Array.IndexOf(modes, S.AutoSaveMode),
+        };
+        mode.SelectionChanged += (_, _) => Update(() => S.AutoSaveMode = modes[Math.Max(0, mode.SelectedIndex)]);
+        Row(loc["settings.autoSave"], mode);
+        Row(loc["settings.autoSaveInterval"], SliderWithValue(5, 600, S.AutoSaveIntervalSeconds, v => S.AutoSaveIntervalSeconds = (int)v));
+        _content.Children.Add(DialogParts.Label(loc["settings.autoSaveHint"], true));
+
         Section(loc["settings.emulator"]);
         Check(loc["settings.externalIo"], S.ExternalIo, v => S.ExternalIo = v);
         _content.Children.Add(DialogParts.Label(loc.Format("settings.externalIoHint", AppPaths.ExternalIoFile), true));

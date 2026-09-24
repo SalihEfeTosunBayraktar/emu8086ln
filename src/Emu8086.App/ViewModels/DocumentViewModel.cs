@@ -19,9 +19,16 @@ public sealed class DocumentViewModel : ObservableObject
         Document = new TextDocument(text);
         Document.UndoStack.ClearAll();
         Document.TextChanged += (_, _) => IsDirty = true;
+        Document.Changed += (_, e) => Stats.Record(e.InsertionLength, e.RemovalLength,
+            CountLineBreaks(e.InsertedText.Text) + CountLineBreaks(e.RemovedText.Text), DateTime.Now);
     }
 
     public TextDocument Document { get; }
+
+    /// <summary>Unsaved changes, used by the auto-save policy.</summary>
+    public Emu8086.Core.Editing.EditStats Stats { get; } = new();
+
+    private static int CountLineBreaks(string text) => text.Count(c => c == '\n');
     public HashSet<int> Breakpoints { get; } = new();
 
     public string FilePath
@@ -81,5 +88,6 @@ public sealed class DocumentViewModel : ObservableObject
     {
         File.WriteAllText(FilePath, Document.Text, new UTF8Encoding(false));
         IsDirty = false;
+        Stats.Reset();
     }
 }

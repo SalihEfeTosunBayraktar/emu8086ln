@@ -286,5 +286,14 @@
   "settings.emulator": "EMULATOR",
   "settings.externalIo": "Externe Geräte: Ports in emu8086.io spiegeln",
   "settings.externalIoHint": "Ports ohne eingebautes Gerät werden in {0} gelesen und geschrieben (ein Byte pro Port), damit andere Programme als Geräte dienen können.",
-  "settings.completionHelp": "Hilfe (Beschreibung und Beispiel) zu Vorschlägen anzeigen"
+  "settings.completionHelp": "Hilfe (Beschreibung und Beispiel) zu Vorschlägen anzeigen",
+  "settings.saving": "SPEICHERN",
+  "settings.autoSave": "Automatisch speichern",
+  "settings.autoSaveInterval": "Intervall (Sekunden)",
+  "settings.autoSaveHint": "Intervall: speichert alle N Sekunden. Intelligent: nie während des Tippens; nach 2 Sekunden Pause werden größere Änderungen und hinzugefügte/entfernte Zeilen sofort, kleine nach N Sekunden gespeichert, beim Wechsel zu einer anderen Datei oder App alles.",
+  "autosave.Off": "Aus",
+  "autosave.Interval": "Alle N Sekunden",
+  "autosave.Smart": "Intelligent",
+  "autosave.done": "Automatisch gespeichert um {0}",
+  "autosave.failed": "Automatisches Speichern von {0} fehlgeschlagen: {1}"
 }

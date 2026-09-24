@@ -100,7 +100,10 @@ public static class UpdateDialog
         Window? window = null;
         bool install = false;
         var loc = Loc.Instance;
-        string notes = update.Notes.Length > MaxNotesLength ? update.Notes[..MaxNotesLength] + "..." : update.Notes;
+        // Release notes are Markdown; show them as plain text.
+        string plain = System.Text.RegularExpressions.Regex.Replace(update.Notes, @"^#+\s*|\*\*|`", "",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        string notes = plain.Length > MaxNotesLength ? plain[..MaxNotesLength] + "..." : plain;
 
         var content = new StackPanel();
         content.Children.Add(new TextBlock

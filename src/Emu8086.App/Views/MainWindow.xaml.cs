@@ -64,6 +64,7 @@ public partial class MainWindow : Window, IDialogService
             if (SettingsService.Current.CheckForUpdates) _ = CheckForUpdatesAsync(silent: true);
         };
         Closing += OnClosing;
+        Deactivated += (_, _) => _vm.OnApplicationDeactivated();
         PreviewKeyDown += (_, e) =>
         {
             if (e.Key != Key.F12) return;

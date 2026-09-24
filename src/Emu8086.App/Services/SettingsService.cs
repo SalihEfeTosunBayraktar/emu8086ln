@@ -23,6 +23,9 @@ public sealed class AppSettings
     /// <summary>Duration of one phase in the CPU visualizer animation (ms).</summary>
     public int VisualizerPhaseMs { get; set; } = 650;
     public bool CheckForUpdates { get; set; }
+    public Emu8086.Core.Editing.AutoSaveMode AutoSaveMode { get; set; } = Emu8086.Core.Editing.AutoSaveMode.Smart;
+    /// <summary>Interval mode: save period. Smart mode: small changes are saved after this long.</summary>
+    public int AutoSaveIntervalSeconds { get; set; } = 30;
     /// <summary>Mirror ports without a built-in device to the shared emu8086.io file.</summary>
     public bool ExternalIo { get; set; }
     /// <summary>Delay between instructions in milliseconds; 0 runs at full speed.</summary>

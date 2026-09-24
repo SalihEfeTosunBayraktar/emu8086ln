@@ -286,5 +286,14 @@
   "settings.emulator": "EMULATOR",
   "settings.externalIo": "External devices: mirror ports to emu8086.io",
   "settings.externalIoHint": "Ports without a built-in device are read from and written to {0} (one byte per port), so other programs can act as devices.",
-  "settings.completionHelp": "Show help (description and example) for suggestions"
+  "settings.completionHelp": "Show help (description and example) for suggestions",
+  "settings.saving": "SAVING",
+  "settings.autoSave": "Auto save",
+  "settings.autoSaveInterval": "Interval (seconds)",
+  "settings.autoSaveHint": "Interval: saves every N seconds. Smart: never while you type; after a 2 second pause it saves bigger edits and added/removed lines at once, small edits after N seconds, and everything when you switch to another file or app.",
+  "autosave.Off": "Off",
+  "autosave.Interval": "Every N seconds",
+  "autosave.Smart": "Smart",
+  "autosave.done": "Auto-saved at {0}",
+  "autosave.failed": "Auto save failed for {0}: {1}"
 }

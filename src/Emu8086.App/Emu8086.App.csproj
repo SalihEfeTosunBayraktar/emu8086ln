@@ -9,7 +9,7 @@
     <AssemblyName>emu8086ln</AssemblyName>
     <RootNamespace>Emu8086.App</RootNamespace>
     <Product>emu8086ln</Product>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
