@@ -39,6 +39,7 @@ public partial class EditorView : UserControl
             if (_model != null) _model.CaretLine = Editor.TextArea.Caret.Line;
         };
         Editor.TextArea.TextEntered += OnTextEntered;
+        InitializeFind();
         Editor.Options.ConvertTabsToSpaces = true;
         Editor.PreviewMouseWheel += OnPreviewMouseWheel;
 
