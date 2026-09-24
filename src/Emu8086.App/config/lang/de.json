@@ -282,5 +282,8 @@
   "floppy.writeTitle": "Auf Diskette schreiben",
   "floppy.writePrompt": "Startsektor (1 = Bootsektor, 1 - 2880):",
   "floppy.badSector": "Bitte eine Sektornummer zwischen 1 und 2880 eingeben.",
-  "floppy.written": "{0} Sektor(en) ab Sektor {1} in {2} geschrieben"
+  "floppy.written": "{0} Sektor(en) ab Sektor {1} in {2} geschrieben",
+  "settings.emulator": "EMULATOR",
+  "settings.externalIo": "Externe Geräte: Ports in emu8086.io spiegeln",
+  "settings.externalIoHint": "Ports ohne eingebautes Gerät werden in {0} gelesen und geschrieben (ein Byte pro Port), damit andere Programme als Geräte dienen können."
 }

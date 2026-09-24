@@ -282,5 +282,8 @@
   "floppy.writeTitle": "Diskete yaz",
   "floppy.writePrompt": "Başlangıç sektörü (1 = boot sektörü, 1 - 2880):",
   "floppy.badSector": "1 ile 2880 arasında bir sektör numarası gir.",
-  "floppy.written": "{0} sektör, {1}. sektörden itibaren {2} dosyasına yazıldı"
+  "floppy.written": "{0} sektör, {1}. sektörden itibaren {2} dosyasına yazıldı",
+  "settings.emulator": "EMÜLATÖR",
+  "settings.externalIo": "Harici cihazlar: portları emu8086.io dosyasına yansıt",
+  "settings.externalIoHint": "Dahili cihazı olmayan portlar {0} dosyasından okunur ve oraya yazılır (port başına bir bayt); böylece başka programlar cihaz gibi davranabilir."
 }

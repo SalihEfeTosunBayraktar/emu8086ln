@@ -21,6 +21,8 @@ public sealed class AppSettings
     /// <summary>Duration of one phase in the CPU visualizer animation (ms).</summary>
     public int VisualizerPhaseMs { get; set; } = 650;
     public bool CheckForUpdates { get; set; }
+    /// <summary>Mirror ports without a built-in device to the shared emu8086.io file.</summary>
+    public bool ExternalIo { get; set; }
     /// <summary>Delay between instructions in milliseconds; 0 runs at full speed.</summary>
     public int StepDelayMs { get; set; } = 0;
     public bool FirstRunDone { get; set; }

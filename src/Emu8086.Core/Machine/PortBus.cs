@@ -21,6 +21,9 @@ public sealed class PortBus : IPortBus
 
     public List<IIoDevice> Devices { get; } = new();
 
+    /// <summary>When set, ports without a built-in device go through this shared file instead of the latch.</summary>
+    public ExternalIoFile? External { get; set; }
+
     /// <summary>Raised for every port access: (port, value, isWrite, word).</summary>
     public event Action<int, int, bool, bool>? Accessed;
 
@@ -37,6 +40,7 @@ public sealed class PortBus : IPortBus
         port &= 0xFFFF;
         int value = _map.TryGetValue(port, out var d)
             ? d.Read(port, word)
+            : External != null ? External.Read(port, word)
             : _latched.TryGetValue(port, out int v) ? v : word ? 0xFFFF : 0xFF;
         value &= word ? 0xFFFF : 0xFF;
         Accessed?.Invoke(port, value, false, word);
@@ -48,6 +52,7 @@ public sealed class PortBus : IPortBus
         port &= 0xFFFF;
         value &= word ? 0xFFFF : 0xFF;
         if (_map.TryGetValue(port, out var d)) d.Write(port, value, word);
+        else if (External != null) External.Write(port, value, word);
         else _latched[port] = value;
         Accessed?.Invoke(port, value, true, word);
     }

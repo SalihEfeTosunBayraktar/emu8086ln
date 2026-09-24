@@ -40,6 +40,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Session.StateChanged += s => Application.Current?.Dispatcher.BeginInvoke(() => OnSessionStateChanged(s));
         _stepDelay = SettingsService.Current.StepDelayMs;
         Session.StepDelayMs = _stepDelay;
+        Session.SetExternalIo(SettingsService.Current.ExternalIo);
+        SettingsService.Changed += () => Session.SetExternalIo(SettingsService.Current.ExternalIo);
 
         Registers = CreateRegisters();
         Flags = CreateFlags();

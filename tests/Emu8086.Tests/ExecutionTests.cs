@@ -369,3 +369,23 @@ public class FloppyTests
         Assert.Equal(-1, VirtualFloppy.ToLba(0, 0, 0));
     }
 }
+
+public class ExternalIoTests
+{
+    [Fact]
+    public void UnclaimedPortsGoThroughTheSharedFile()
+    {
+        string path = Path.Combine(Path.GetTempPath(), "emu8086ln-tests", Guid.NewGuid().ToString("N"), ExternalIoFile.FileName);
+        using var io = new ExternalIoFile(path);
+        var result = TestHost.AssembleOk("org 100h\nmov ax, 1234h\nmov dx, 300\nout dx, ax\nmov dx, 500\nin al, dx\nhlt");
+        var m = new Machine(Path.Combine(Path.GetDirectoryName(path)!, "C"));
+        m.Ports.External = io;
+        io.Write(500, 0x5A, false);          // an "external device" sets port 500
+        m.Load(ProgramImage.Link(result));
+        for (int i = 0; i < 10 && !m.IsStopped; i++) m.Step();
+
+        Assert.Equal(0x5A, m.Cpu.AL);
+        Assert.Equal(0x1234, io.Read(300, true));
+        m.Dispose();
+    }
+}

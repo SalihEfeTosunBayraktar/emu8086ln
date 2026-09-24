@@ -24,4 +24,5 @@ public static class AppPaths
 
     public static string DefaultProjectsDirectory => Path.Combine(DocumentsDirectory, "Projects");
     public static string VirtualDriveDirectory => Path.Combine(DocumentsDirectory, "vdrive", "C");
+    public static string ExternalIoFile => Path.Combine(DocumentsDirectory, "vdrive", Emu8086.Core.Machine.ExternalIoFile.FileName);
 }

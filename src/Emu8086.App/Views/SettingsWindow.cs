@@ -95,6 +95,9 @@ public sealed class SettingsWindow
         };
         Row(loc["settings.language"], language);
 
+        Section(loc["settings.emulator"]);
+        Check(loc["settings.externalIo"], S.ExternalIo, v => S.ExternalIo = v);
+        _content.Children.Add(DialogParts.Label(loc.Format("settings.externalIoHint", AppPaths.ExternalIoFile), true));
         Check(loc["settings.checkUpdates"], S.CheckForUpdates, v => S.CheckForUpdates = v);
 
         var reset = DialogParts.Button("settings.reset", false, () =>

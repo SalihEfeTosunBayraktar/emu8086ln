@@ -255,9 +255,35 @@ public sealed class EmulatorSession : IDisposable
 
     #endregion
 
+    /// <summary>Opens or closes the shared emu8086.io file for external devices.</summary>
+    public void SetExternalIo(bool enabled)
+    {
+        lock (Sync)
+        {
+            var ports = Machine.Ports;
+            if (enabled && ports.External == null)
+            {
+                try
+                {
+                    ports.External = new ExternalIoFile(AppPaths.ExternalIoFile);
+                }
+                catch (IOException)
+                {
+                    ports.External = null;
+                }
+            }
+            else if (!enabled && ports.External != null)
+            {
+                ports.External.Dispose();
+                ports.External = null;
+            }
+        }
+    }
+
     public void Dispose()
     {
         Stop();
+        SetExternalIo(false);
         Machine.Dispose();
         _wake.Dispose();
     }

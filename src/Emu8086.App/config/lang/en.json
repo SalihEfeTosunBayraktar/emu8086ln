@@ -282,5 +282,8 @@
   "floppy.writeTitle": "Write to floppy",
   "floppy.writePrompt": "First sector (1 = boot sector, 1 - 2880):",
   "floppy.badSector": "Please enter a sector number between 1 and 2880.",
-  "floppy.written": "{0} sector(s) written from sector {1} to {2}"
+  "floppy.written": "{0} sector(s) written from sector {1} to {2}",
+  "settings.emulator": "EMULATOR",
+  "settings.externalIo": "External devices: mirror ports to emu8086.io",
+  "settings.externalIoHint": "Ports without a built-in device are read from and written to {0} (one byte per port), so other programs can act as devices."
 }
