@@ -178,7 +178,7 @@
                     </MenuItem>
                 </Menu>
 
-                <TextBlock Grid.Column="2" Text="{Binding ProjectName}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                <TextBlock Grid.ColumnSpan="4" Text="{Binding ProjectName}" HorizontalAlignment="Center" VerticalAlignment="Center"
                            Foreground="{DynamicResource Fg.Secondary}" IsHitTestVisible="False"/>
 
                 <StackPanel Grid.Column="3" Orientation="Horizontal">

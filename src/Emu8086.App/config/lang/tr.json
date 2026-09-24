@@ -228,5 +228,6 @@
   "viz.n.port": "PORT  {0} {1}: {2}h",
   "viz.n.int": "KESME  INT {0:X2}h: BIOS/DOS servisi çalıştı",
   "viz.n.jump": "ATLAMA  çalışma {0:X4}:{1:X4} adresinden devam ediyor",
-  "viz.n.next": "SONRAKİ  IP = {0:X4}h (bir sonraki komut)"
+  "viz.n.next": "SONRAKİ  IP = {0:X4}h (bir sonraki komut)",
+  "viz.animSpeed": "Animasyon"
 }

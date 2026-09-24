@@ -228,5 +228,6 @@
   "viz.n.port": "PORT  {0} {1}: {2}h",
   "viz.n.int": "INTERRUPT  INT {0:X2}h: BIOS/DOS-Dienst läuft",
   "viz.n.jump": "SPRUNG  weiter bei {0:X4}:{1:X4}",
-  "viz.n.next": "NÄCHSTER  IP = {0:X4}h (folgender Befehl)"
+  "viz.n.next": "NÄCHSTER  IP = {0:X4}h (folgender Befehl)",
+  "viz.animSpeed": "Animation"
 }

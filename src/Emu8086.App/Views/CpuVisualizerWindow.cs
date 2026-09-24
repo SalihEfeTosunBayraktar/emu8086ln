@@ -15,7 +15,8 @@ namespace Emu8086.App.Views;
 /// </summary>
 public sealed class CpuVisualizerWindow
 {
-    private static readonly TimeSpan PhaseDuration = TimeSpan.FromMilliseconds(650);
+    private const double MinPhaseMs = 150;
+    private const double MaxPhaseMs = 2000;
 
     private readonly Window _window;
     private readonly MainViewModel _vm;
@@ -35,7 +36,7 @@ public sealed class CpuVisualizerWindow
         _animate.SetBinding(ContentControl.ContentProperty, new System.Windows.Data.Binding("[viz.animate]") { Source = loc });
         _animate.Click += (_, _) => Replay();
 
-        _timer = new DispatcherTimer { Interval = PhaseDuration };
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(SettingsService.Current.VisualizerPhaseMs) };
         _timer.Tick += (_, _) => NextPhase();
 
         _window = new Window
@@ -74,7 +75,9 @@ public sealed class CpuVisualizerWindow
 
     private UIElement BuildLayout()
     {
-        var toolbar = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12, 8, 12, 8) };
+        var toolbar = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12, 8, 12, 8) };
+        toolbar.Children.Add(ToolButton("Icon.Run", "cmd.run", _vm.RunCommand, filled: true));
+        toolbar.Children.Add(ToolButton("Icon.Pause", "cmd.pause", _vm.PauseCommand));
         toolbar.Children.Add(ToolButton("Icon.StepBack", "cmd.stepBack", _vm.StepBackCommand));
         toolbar.Children.Add(ToolButton("Icon.StepInto", "cmd.stepInto", _vm.StepIntoCommand));
         toolbar.Children.Add(ToolButton("Icon.StepOver", "cmd.stepOver", _vm.StepOverCommand));
@@ -84,6 +87,7 @@ public sealed class CpuVisualizerWindow
         replay.SetBinding(ContentControl.ContentProperty, new System.Windows.Data.Binding("[viz.replay]") { Source = Loc.Instance });
         replay.Click += (_, _) => Replay();
         toolbar.Children.Add(replay);
+        toolbar.Children.Add(SpeedControls());
 
         var legend = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(24, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
         legend.Children.Add(LegendItem("Viz.Active", "viz.legend.active"));
@@ -115,12 +119,54 @@ public sealed class CpuVisualizerWindow
         return root;
     }
 
-    private static Button ToolButton(string icon, string tooltipKey, System.Windows.Input.ICommand command)
+    /// <summary>Instruction speed (shared with the main window) and animation speed sliders.</summary>
+    private UIElement SpeedControls()
+    {
+        var panel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(20, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+
+        panel.Children.Add(SliderLabel("tool.speed"));
+        var speed = new Slider
+        {
+            Width = 110, Minimum = 0, Maximum = 1000, IsDirectionReversed = true, IsSnapToTickEnabled = true,
+            Ticks = new DoubleCollection([0, 1, 5, 10, 25, 50, 100, 200, 400, 700, 1000]), VerticalAlignment = VerticalAlignment.Center,
+        };
+        speed.SetBinding(System.Windows.Controls.Primitives.RangeBase.ValueProperty,
+            new System.Windows.Data.Binding(nameof(MainViewModel.StepDelay)) { Source = _vm, Mode = System.Windows.Data.BindingMode.TwoWay });
+        panel.Children.Add(speed);
+        var speedText = new TextBlock { Margin = new Thickness(8, 0, 0, 0), MinWidth = 90, VerticalAlignment = VerticalAlignment.Center };
+        speedText.SetResourceReference(TextBlock.ForegroundProperty, "Fg.Muted");
+        speedText.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(MainViewModel.SpeedText)) { Source = _vm });
+        panel.Children.Add(speedText);
+
+        panel.Children.Add(SliderLabel("viz.animSpeed"));
+        var animation = new Slider
+        {
+            Width = 110, Minimum = MinPhaseMs, Maximum = MaxPhaseMs, IsDirectionReversed = true,
+            Value = SettingsService.Current.VisualizerPhaseMs, VerticalAlignment = VerticalAlignment.Center,
+        };
+        animation.ValueChanged += (_, e) =>
+        {
+            SettingsService.Current.VisualizerPhaseMs = (int)e.NewValue;
+            _timer.Interval = TimeSpan.FromMilliseconds(e.NewValue);
+        };
+        panel.Children.Add(animation);
+        return panel;
+    }
+
+    private static TextBlock SliderLabel(string key)
+    {
+        var text = new TextBlock { Margin = new Thickness(12, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
+        text.SetResourceReference(TextBlock.ForegroundProperty, "Fg.Secondary");
+        text.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding($"[{key}]") { Source = Loc.Instance });
+        return text;
+    }
+
+    private static Button ToolButton(string icon, string tooltipKey, System.Windows.Input.ICommand command, bool filled = false)
     {
         var path = new System.Windows.Shapes.Path
         {
             Data = (Geometry)Application.Current.FindResource(icon),
-            Style = (Style)Application.Current.FindResource("Icon"),
+            Style = (Style)Application.Current.FindResource(filled ? "IconFilled" : "Icon"),
         };
         var button = new Button { Content = path, Command = command, Style = (Style)Application.Current.FindResource("ToolButton"), Margin = new Thickness(2, 0, 2, 0) };
         button.SetBinding(FrameworkElement.ToolTipProperty, new System.Windows.Data.Binding($"[{tooltipKey}]") { Source = Loc.Instance });
@@ -150,7 +196,7 @@ public sealed class CpuVisualizerWindow
     /// <summary>Phases are animated when stepping, or when running slowly enough for all four phases to play.</summary>
     private bool Animating =>
         _animate.IsChecked == true && _step != null
-        && (!_vm.Session.IsBusy || _vm.Session.StepDelayMs >= PhaseDuration.TotalMilliseconds * 4);
+        && (!_vm.Session.IsBusy || _vm.Session.StepDelayMs >= _timer.Interval.TotalMilliseconds * 4);
 
     private void Replay()
     {

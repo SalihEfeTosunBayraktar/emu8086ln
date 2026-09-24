@@ -18,6 +18,8 @@ public sealed class AppSettings
     public int IndentSize { get; set; } = 4;
     public bool HighlightCurrentLine { get; set; } = true;
     public bool AutoComplete { get; set; } = true;
+    /// <summary>Duration of one phase in the CPU visualizer animation (ms).</summary>
+    public int VisualizerPhaseMs { get; set; } = 650;
     /// <summary>Delay between instructions in milliseconds; 0 runs at full speed.</summary>
     public int StepDelayMs { get; set; } = 0;
     public bool FirstRunDone { get; set; }
