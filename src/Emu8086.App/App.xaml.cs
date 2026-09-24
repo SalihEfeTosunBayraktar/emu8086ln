@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using Emu8086.App.Services;
 using Emu8086.App.Views;
@@ -20,7 +19,7 @@ public partial class App : Application
         SettingsService.Load();
         var settings = SettingsService.Current;
         if (string.IsNullOrEmpty(settings.Language))
-            settings.Language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            settings.Language = AppSettings.DefaultLanguage;
         Loc.Instance.Load(settings.Language);
         settings.Language = Loc.Instance.CurrentCode;
         ThemeService.Apply(settings.Theme);

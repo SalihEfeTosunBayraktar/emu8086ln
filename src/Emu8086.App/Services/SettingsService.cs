@@ -6,6 +6,7 @@ namespace Emu8086.App.Services;
 public sealed class AppSettings
 {
     public const string DefaultEditorFont = "Cascadia Mono";
+    public const string DefaultLanguage = "en";
 
     public string Language { get; set; } = "";
     public string Theme { get; set; } = "Dark";
