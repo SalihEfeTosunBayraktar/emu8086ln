@@ -297,3 +297,20 @@ public class BinaryLoadingTests
         Assert.Equal("EXE!", RunImage(loaded).Video.ReadText());
     }
 }
+
+public class RegisterPresetTests
+{
+    [Fact]
+    public void HashDirectivesPresetRegisters()
+    {
+        var m = TestHost.Run("#make_COM#\n#AX=1234h#\n#CX=5#\norg 100h\nadd ax, cx\nhlt");
+        Assert.Equal(0x1239, m.Cpu.AX);
+    }
+
+    [Fact]
+    public void UnknownHashDirectiveIsAnError()
+    {
+        var r = TestHost.Assemble("#QQ=1#\norg 100h\nhlt");
+        Assert.Contains(r.Diagnostics, d => d.Code == Emu8086.Core.Assembler.AsmErrorCode.UnexpectedDirective);
+    }
+}

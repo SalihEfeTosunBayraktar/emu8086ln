@@ -17,8 +17,17 @@ public sealed class ProgramImage
     public int EntryOffset { get; init; }
     public int StackParagraph { get; init; }
     public int StackPointer { get; init; }
+    /// <summary>Register values applied after loading (#AX=...# directives).</summary>
+    public Dictionary<string, ushort> RegisterPresets { get; } = new();
 
     public static ProgramImage Link(AssemblyResult result)
+    {
+        var image = LinkSegments(result);
+        foreach (var preset in result.RegisterPresets) image.RegisterPresets[preset.Key] = preset.Value;
+        return image;
+    }
+
+    private static ProgramImage LinkSegments(AssemblyResult result)
     {
         var segments = result.Segments;
         if (result.Format != OutputFormat.Exe)

@@ -118,6 +118,7 @@ public sealed class Machine : IDisposable
                 LoadExe(image);
                 break;
         }
+        ApplyPresets(image.RegisterPresets);
         History.Clear();
     }
 
@@ -171,6 +172,29 @@ public sealed class Machine : IDisposable
         Cpu.SP = (ushort)image.StackPointer;
         Cpu.DS = Cpu.ES = PspSegment;
         SegmentBases = image.SegmentParagraphs.Select(p => (ushort)(load + p)).ToArray();
+    }
+
+    private void ApplyPresets(Dictionary<string, ushort> presets)
+    {
+        foreach (var (name, value) in presets)
+        {
+            switch (name)
+            {
+                case "AX": Cpu.AX = value; break;
+                case "BX": Cpu.BX = value; break;
+                case "CX": Cpu.CX = value; break;
+                case "DX": Cpu.DX = value; break;
+                case "SI": Cpu.SI = value; break;
+                case "DI": Cpu.DI = value; break;
+                case "BP": Cpu.BP = value; break;
+                case "SP": Cpu.SP = value; break;
+                case "CS": Cpu.CS = value; break;
+                case "DS": Cpu.DS = value; break;
+                case "ES": Cpu.ES = value; break;
+                case "SS": Cpu.SS = value; break;
+                case "IP": Cpu.IP = value; break;
+            }
+        }
     }
 
     public bool IsStopped => Cpu.Halted || StopReason is not (StopReason.None or StopReason.Breakpoint);

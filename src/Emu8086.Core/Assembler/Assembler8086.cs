@@ -33,6 +33,7 @@ public sealed partial class Assembler8086 : IExprContext
     private List<AsmDiagnostic> _diagnostics = new();
     private List<ListingEntry> _listing = new();
     private List<string> _devices = new();
+    private readonly Dictionary<string, ushort> _registerPresets = new();
     private OutputFormat _format;
     private bool _usesSegments;
     private int _current = -1;
@@ -67,6 +68,7 @@ public sealed partial class Assembler8086 : IExprContext
         foreach (var s in _symbols) result.Symbols[s.Key] = s.Value;
         result.Listing.AddRange(_listing);
         result.Devices.AddRange(_devices.Distinct(StringComparer.OrdinalIgnoreCase));
+        foreach (var preset in _registerPresets) result.RegisterPresets[preset.Key] = preset.Value;
 
         if (_entryName != null && _symbols.TryGetValue(_entryName, out var entry))
             result.Entry = (entry.Segment, (int)entry.Value);
@@ -351,16 +353,23 @@ public sealed partial class Assembler8086 : IExprContext
         return false;
     }
 
+    /// <summary>#start=device#, #AX=1234h# style register presets; #make_xxx# is handled in PreScan.</summary>
     private void HandleHashDirective(string text)
     {
         string body = text.Trim('#').Trim();
         int eq = body.IndexOf('=');
-        if (eq > 0 && body[..eq].Trim().Equals("start", StringComparison.OrdinalIgnoreCase))
+        if (eq <= 0) return;
+        string name = body[..eq].Trim().ToUpperInvariant();
+        string value = body[(eq + 1)..].Trim();
+        if (name == "START")
         {
-            string device = body[(eq + 1)..].Trim();
-            _devices.Add(Path.GetFileNameWithoutExtension(device));
+            _devices.Add(Path.GetFileNameWithoutExtension(value));
+            return;
         }
-        // #make_xxx# is handled in PreScan; register presets (#AX=..#) are not needed.
+        if (!RegisterPreset.Names.Contains(name)) throw new AsmException(AsmErrorCode.UnexpectedDirective, "#" + name + "#");
+        long number = EvaluateConstant(Lexer.Tokenize(value));
+        if (number is < -32768 or > 0xFFFF) throw new AsmException(AsmErrorCode.ValueOutOfRange, value);
+        _registerPresets[name] = (ushort)number;
     }
 
     private void HandleNamedDirective(string name, string directive, List<Token> tokens, int p)
