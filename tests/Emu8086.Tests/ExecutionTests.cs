@@ -251,3 +251,49 @@ public class ExecutionTests
         Assert.Equal(42, m.Cpu.AL);
     }
 }
+
+public class BinaryLoadingTests
+{
+    private static Machine RunImage(ProgramImage image)
+    {
+        var m = new Machine(Path.Combine(Path.GetTempPath(), "emu8086ln-tests"));
+        m.Load(image);
+        for (int i = 0; i < 100000 && !m.IsStopped; i++) m.Step();
+        return m;
+    }
+
+    [Fact]
+    public void ComFileRoundTrip()
+    {
+        var image = ProgramImage.Link(TestHost.AssembleOk("org 100h\nmov dx, offset m\nmov ah, 9\nint 21h\nret\nm db 'COM!$'"));
+        var loaded = ProgramImage.FromFile(image.ToFileBytes(), ".com");
+        Assert.Equal("COM!", RunImage(loaded).Video.ReadText());
+    }
+
+    [Fact]
+    public void ExeFileRoundTripAppliesRelocations()
+    {
+        var image = ProgramImage.Link(TestHost.AssembleOk("""
+            data segment
+              m db 'EXE!$'
+            ends
+            stack segment
+              dw 64 dup(0)
+            ends
+            code segment
+            start:
+              mov ax, data
+              mov ds, ax
+              mov dx, offset m
+              mov ah, 9
+              int 21h
+              mov ax, 4C00h
+              int 21h
+            ends
+            end start
+            """));
+        var loaded = ProgramImage.FromFile(image.ToFileBytes(), ".exe");
+        Assert.Equal(image.Relocations, loaded.Relocations);
+        Assert.Equal("EXE!", RunImage(loaded).Video.ReadText());
+    }
+}

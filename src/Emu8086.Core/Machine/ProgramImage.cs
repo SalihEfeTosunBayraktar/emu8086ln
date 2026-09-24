@@ -91,6 +91,51 @@ public sealed class ProgramImage
         };
     }
 
+    /// <summary>Loads an existing .com, .exe (MZ) or .bin file.</summary>
+    public static ProgramImage FromFile(byte[] file, string extension)
+    {
+        bool isMz = file.Length >= 28 && file[0] == 'M' && file[1] == 'Z';
+        if (isMz) return FromMz(file);
+        var format = extension.Equals(".com", StringComparison.OrdinalIgnoreCase) ? OutputFormat.Com : OutputFormat.Bin;
+        int origin = format == OutputFormat.Com ? 0x100 : 0;
+        return new ProgramImage
+        {
+            Format = format,
+            Bytes = file,
+            SegmentParagraphs = new int[1],
+            Origin = origin,
+            EntryOffset = origin,
+        };
+    }
+
+    private static ProgramImage FromMz(byte[] file)
+    {
+        int Word(int at) => file[at] | (file[at + 1] << 8);
+        int lastPage = Word(2), pages = Word(4), relocations = Word(6), headerParagraphs = Word(8);
+        int size = pages * 512 - (lastPage == 0 ? 0 : 512 - lastPage);
+        int headerSize = headerParagraphs * 16;
+        size = Math.Clamp(size, headerSize, file.Length);
+        var bytes = file[headerSize..size];
+        int entryParagraph = Word(22);
+        var image = new ProgramImage
+        {
+            Format = OutputFormat.Exe,
+            Bytes = bytes,
+            SegmentParagraphs = [entryParagraph],
+            EntryParagraph = entryParagraph,
+            EntryOffset = Word(20),
+            StackParagraph = Word(14),
+            StackPointer = Word(16),
+        };
+        int table = Word(24);
+        for (int i = 0; i < relocations && table + i * 4 + 3 < file.Length; i++)
+        {
+            int at = Word(table + i * 4 + 2) * 16 + Word(table + i * 4);
+            if (at + 1 < bytes.Length) image.Relocations.Add(at);
+        }
+        return image;
+    }
+
     /// <summary>Serialises the image in its DOS file format.</summary>
     public byte[] ToFileBytes()
     {

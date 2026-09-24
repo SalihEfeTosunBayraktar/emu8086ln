@@ -42,3 +42,18 @@ public class DisassemblerTests
         Assert.Equal(original, again);
     }
 }
+
+public class BinaryDisassemblyTests
+{
+    [Fact]
+    public void DisassemblyReassemblesToTheSameBytes()
+    {
+        var image = Emu8086.Core.Machine.ProgramImage.Link(TestHost.AssembleOk(
+            "org 100h\nmov cx, 3\nl: mov dl, 'x'\nmov ah, 2\nint 21h\nloop l\nret"));
+        var (text, listing) = BinaryDisassembly.Create(image, "t.com");
+        Assert.Equal(6, listing.Count);
+        Assert.Equal(0x100, listing[0].Offset);
+        var again = Emu8086.Core.Machine.ProgramImage.Link(TestHost.AssembleOk(text));
+        Assert.Equal(image.Bytes, again.Bytes);
+    }
+}

@@ -3,6 +3,7 @@ using Emu8086.App.Services;
 using Emu8086.Core.Analysis;
 using Emu8086.Core.Assembler;
 using Emu8086.Core.Cpu;
+using Emu8086.Core.Disassembler;
 using Emu8086.Core.Machine;
 
 namespace Emu8086.App.ViewModels;
@@ -10,6 +11,8 @@ namespace Emu8086.App.ViewModels;
 public sealed partial class MainViewModel
 {
     private List<AsmDiagnostic> _lastDiagnostics = new();
+    /// <summary>Disassembly document of a program loaded from an executable file (no source).</summary>
+    private DocumentViewModel? _binaryDocument;
     private StepRecord? _lastAnalyzedRecord;
 
     /// <summary>Analysis of the most recently executed instruction (for the CPU visualizer).</summary>
@@ -75,6 +78,7 @@ public sealed partial class MainViewModel
     /// <summary>The document that is assembled: the project's main file, else the active one.</summary>
     private DocumentViewModel? EnsureBuildTargetOpen()
     {
+        if (_binaryDocument != null && SelectedDocument == _binaryDocument) return _binaryDocument;
         if (Project != null && File.Exists(Project.MainFilePath)) return OpenDocumentQuiet(Project.MainFilePath);
         return SelectedDocument;
     }
@@ -160,6 +164,50 @@ public sealed partial class MainViewModel
             Log(Loc.Instance.Format("output.exported", path), OutputKind.Success);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            _dialogs.ShowMessage(e.Message);
+        }
+    }
+
+    /// <summary>
+    /// Loads a .com / .exe / .bin file without source: the program goes into memory and its
+    /// disassembly opens in the editor, mapped line by line to addresses for stepping.
+    /// </summary>
+    private void OpenExecutable()
+    {
+        string? path = _dialogs.PickExecutableFile();
+        if (path == null) return;
+        try
+        {
+            var image = ProgramImage.FromFile(File.ReadAllBytes(path), Path.GetExtension(path));
+            var (text, listing) = BinaryDisassembly.Create(image, Path.GetFileName(path));
+            string folder = Path.Combine(AppPaths.DocumentsDirectory, "Disassembly");
+            Directory.CreateDirectory(folder);
+            string target = Path.Combine(folder, Path.GetFileNameWithoutExtension(path) + ".asm");
+            File.WriteAllText(target, text);
+
+            var existing = Documents.FirstOrDefault(d => string.Equals(d.FilePath, target, StringComparison.OrdinalIgnoreCase));
+            if (existing != null) Documents.Remove(existing);
+            var doc = OpenDocument(target);
+            if (doc == null) return;
+
+            var result = new AssemblyResult { Format = image.Format };
+            result.Listing.AddRange(listing);
+            Session.Load(new BuildOutput(result, image, target));
+            _binaryDocument = doc;
+            _buildDocument = doc;
+            _builtText = doc.Document.Text;
+            _lastDiagnostics = new();
+            RefreshDiagnosticsText();
+            SyncBreakpoints(doc);
+            _baseline = Session.Machine.Cpu.GetState();
+            Log(Loc.Instance.Format("output.binaryLoaded", Path.GetFileName(path), image.Format.ToString().ToUpperInvariant(), image.Bytes.Length), OutputKind.Success);
+            StatusText = Loc.Instance["status.buildOk"];
+            ProgramLoaded?.Invoke();
+            RefreshAll();
+            UpdateLastStep();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
         {
             _dialogs.ShowMessage(e.Message);
         }

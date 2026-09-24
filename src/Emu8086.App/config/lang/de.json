@@ -256,5 +256,8 @@
   "goto.title": "Gehe zu Zeile",
   "goto.prompt": "Zeilennummer (1 - {0}):",
   "cmd.exportListing": "Listing und Symboltabelle exportieren (.lst / .symbol)",
-  "output.listing": "Listing in {0}, Symbole in {1} geschrieben"
+  "output.listing": "Listing in {0}, Symbole in {1} geschrieben",
+  "cmd.openExecutable": "Programmdatei öffnen (.com / .exe / .bin)...",
+  "filter.executable": "Programmdatei",
+  "output.binaryLoaded": "{0} als {1} geladen ({2} Bytes); die Disassemblierung ist im Editor geöffnet."
 }

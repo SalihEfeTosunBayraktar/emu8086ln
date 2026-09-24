@@ -11,6 +11,7 @@ public interface IDialogService
 {
     string? PickProjectFile();
     string? PickSourceFile();
+    string? PickExecutableFile();
     string? PickSaveFile(string defaultName, string extension);
     NewProjectRequest? AskNewProject();
     string? AskText(string title, string prompt, string initial);

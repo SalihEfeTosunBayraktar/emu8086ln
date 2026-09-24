@@ -50,6 +50,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NewProjectCommand = new RelayCommand(NewProject);
         OpenProjectCommand = new RelayCommand(OpenProject);
         OpenFileCommand = new RelayCommand(OpenFile);
+        OpenExecutableCommand = new RelayCommand(OpenExecutable, () => !Session.IsBusy);
         NewFileCommand = new RelayCommand(NewFile, () => Project != null);
         SaveCommand = new RelayCommand(() => SaveDocument(SelectedDocument), () => SelectedDocument != null);
         SaveAllCommand = new RelayCommand(() => SaveAll());
@@ -101,6 +102,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ICommand NewProjectCommand { get; }
     public ICommand OpenProjectCommand { get; }
     public ICommand OpenFileCommand { get; }
+    public ICommand OpenExecutableCommand { get; }
     public ICommand NewFileCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand SaveAllCommand { get; }

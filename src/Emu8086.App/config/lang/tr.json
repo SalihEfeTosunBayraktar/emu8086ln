@@ -256,5 +256,8 @@
   "goto.title": "Satıra git",
   "goto.prompt": "Satır numarası (1 - {0}):",
   "cmd.exportListing": "Listing ve sembol tablosunu dışa aktar (.lst / .symbol)",
-  "output.listing": "Listing {0} dosyasına, semboller {1} dosyasına yazıldı"
+  "output.listing": "Listing {0} dosyasına, semboller {1} dosyasına yazıldı",
+  "cmd.openExecutable": "Çalıştırılabilir dosya aç (.com / .exe / .bin)...",
+  "filter.executable": "Çalıştırılabilir dosya",
+  "output.binaryLoaded": "{0} {1} olarak yüklendi ({2} bayt); disassembly'si editörde açık."
 }

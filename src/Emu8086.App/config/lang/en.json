@@ -256,5 +256,8 @@
   "goto.title": "Go to line",
   "goto.prompt": "Line number (1 - {0}):",
   "cmd.exportListing": "Export listing and symbol table (.lst / .symbol)",
-  "output.listing": "Listing written to {0}, symbols to {1}"
+  "output.listing": "Listing written to {0}, symbols to {1}",
+  "cmd.openExecutable": "Open executable (.com / .exe / .bin)...",
+  "filter.executable": "Executable",
+  "output.binaryLoaded": "{0} loaded as {1} ({2} bytes); its disassembly is open in the editor."
 }

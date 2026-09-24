@@ -115,6 +115,9 @@
                         <MenuItem Header="{svc:Tr cmd.openFile}" Command="{Binding OpenFileCommand}">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.File}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem Header="{svc:Tr cmd.openExecutable}" Command="{Binding OpenExecutableCommand}">
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Chip}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
+                        </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.save}" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.Save}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>

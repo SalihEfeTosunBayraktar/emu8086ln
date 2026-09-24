@@ -410,6 +410,12 @@ public partial class MainWindow : Window, IDialogService
         return dialog.ShowDialog(this) == true ? dialog.FileName : null;
     }
 
+    public string? PickExecutableFile()
+    {
+        var dialog = new OpenFileDialog { Filter = $"{Loc.Instance["filter.executable"]}|*.com;*.exe;*.bin|{Loc.Instance["filter.all"]}|*.*" };
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+    }
+
     public string? PickSaveFile(string defaultName, string extension)
     {
         var dialog = new SaveFileDialog
