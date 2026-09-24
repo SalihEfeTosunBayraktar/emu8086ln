@@ -34,7 +34,17 @@ public sealed class Bios : IInterruptHandler
     private Memory Mem => _m.Memory;
     private Video Video => _m.Video;
 
-    public InterruptResult Handle(int vector, Cpu8086 cpu) => vector switch
+    /// <summary>True when the last Wait result was for keyboard input (not a timed delay).</summary>
+    public bool WaitingForKeyboard { get; private set; }
+
+    public InterruptResult Handle(int vector, Cpu8086 cpu)
+    {
+        var result = Dispatch(vector, cpu);
+        WaitingForKeyboard = result == InterruptResult.Wait && vector != 0x15;
+        return result;
+    }
+
+    private InterruptResult Dispatch(int vector, Cpu8086 cpu) => vector switch
     {
         0x00 => Stop(StopReason.DivideError),
         0x03 => Break(),

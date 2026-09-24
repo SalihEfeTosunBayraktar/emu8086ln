@@ -11,8 +11,6 @@ namespace Emu8086.App.ViewModels;
 public sealed partial class MainViewModel
 {
     private List<AsmDiagnostic> _lastDiagnostics = new();
-    /// <summary>Disassembly document of a program loaded from an executable file (no source).</summary>
-    private DocumentViewModel? _binaryDocument;
     private StepRecord? _lastAnalyzedRecord;
 
     /// <summary>Analysis of the most recently executed instruction (for the CPU visualizer).</summary>
@@ -75,13 +73,19 @@ public sealed partial class MainViewModel
     /// <summary>A build is possible when a project main file exists or a document is open.</summary>
     private bool CanBuild() => Project != null && File.Exists(Project.MainFilePath) || SelectedDocument != null;
 
-    /// <summary>The document that is assembled: the project's main file, else the active one.</summary>
+    /// <summary>
+    /// The document that is assembled: the active .asm file (what the user is looking at);
+    /// for include/listing files, the project's main file.
+    /// </summary>
     private DocumentViewModel? EnsureBuildTargetOpen()
     {
-        if (_binaryDocument != null && SelectedDocument == _binaryDocument) return _binaryDocument;
+        if (SelectedDocument is { } selected && IsRunnable(selected.FilePath)) return selected;
         if (Project != null && File.Exists(Project.MainFilePath)) return OpenDocumentQuiet(Project.MainFilePath);
         return SelectedDocument;
     }
+
+    private static bool IsRunnable(string path) =>
+        Path.GetExtension(path).Equals(".asm", StringComparison.OrdinalIgnoreCase);
 
     private DocumentViewModel? OpenDocumentQuiet(string path)
     {
@@ -246,7 +250,6 @@ public sealed partial class MainViewModel
         var result = new AssemblyResult { Format = image.Format };
         result.Listing.AddRange(listing);
         Session.Load(new BuildOutput(result, image, target));
-        _binaryDocument = doc;
         _buildDocument = doc;
         _builtText = doc.Document.Text;
         _lastDiagnostics = new();

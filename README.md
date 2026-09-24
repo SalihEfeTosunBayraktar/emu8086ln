@@ -5,6 +5,13 @@
 A modern **8086 microprocessor emulator, assembler and learning environment** for Windows 11.
 Source-compatible with emu8086 programs (`#make_COM#`, `emu8086.inc`, virtual devices).
 
+## Screenshots
+
+![Editor](docs/screenshots/main.png)
+![Debugger](docs/screenshots/debugger.png)
+![CPU visualizer](docs/screenshots/visualizer.png)
+![Virtual devices](docs/screenshots/devices.png)
+
 ## Features
 
 - **Assembler** – MASM / emu8086 syntax, multi-pass; COM, EXE (MZ), BIN and BOOT output.

@@ -389,3 +389,17 @@ public class ExternalIoTests
         m.Dispose();
     }
 }
+
+public class WaitKindTests
+{
+    [Fact]
+    public void DelayIsNotAKeyboardWait()
+    {
+        var delay = TestHost.Run("org 100h\nmov cx, 0Fh\nmov dx, 4240h\nmov ah, 86h\nint 15h\nhlt", maxSteps: 3);
+        delay.Step();
+        Assert.False(delay.Bios.WaitingForKeyboard);
+
+        var key = TestHost.Run("org 100h\nmov ah, 0\nint 16h\nhlt");
+        Assert.True(key.Bios.WaitingForKeyboard);
+    }
+}

@@ -239,7 +239,8 @@ public sealed class EmulatorSession : IDisposable
             if (finished) break;
             if (waiting)
             {
-                State = SessionState.WaitingInput;
+                // A timed delay (INT 15h) keeps running; only keyboard waits ask the user for input.
+                State = Machine.Bios.WaitingForKeyboard ? SessionState.WaitingInput : SessionState.Running;
                 _wake.WaitOne(InputPoll);
                 continue;
             }
