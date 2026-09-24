@@ -121,6 +121,7 @@ public sealed partial class MainViewModel
         }
 
         Session.Load(build);
+        RememberStackTop();
         SyncBreakpoints(doc);
         _baseline = Session.Machine.Cpu.GetState();
         Log(Loc.Instance.Format("output.buildOk", Path.GetFileName(doc.FilePath), build.Result.Format.ToString().ToUpperInvariant(),
@@ -250,6 +251,7 @@ public sealed partial class MainViewModel
         var result = new AssemblyResult { Format = image.Format };
         result.Listing.AddRange(listing);
         Session.Load(new BuildOutput(result, image, target));
+        RememberStackTop();
         _buildDocument = doc;
         _builtText = doc.Document.Text;
         _lastDiagnostics = new();
@@ -491,6 +493,7 @@ public sealed partial class MainViewModel
         for (int i = 0; i < Flags.Count; i++)
             Flags[i].Load((s.Flags & (ushort)flagBits[i]) != 0);
         PositionText = Loc.Instance.Format("status.position", s.CS, s.IP, Memory.Physical(s.CS, s.IP), count);
+        UpdateCycleText();
     }
 
     private void RefreshLists()

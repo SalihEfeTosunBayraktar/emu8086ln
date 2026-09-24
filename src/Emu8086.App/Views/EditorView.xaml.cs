@@ -39,6 +39,8 @@ public partial class EditorView : UserControl
             if (_model != null) _model.CaretLine = Editor.TextArea.Caret.Line;
         };
         Editor.TextArea.TextEntered += OnTextEntered;
+        Editor.TextArea.TextView.MouseHover += OnMouseHover;
+        Editor.TextArea.TextView.MouseHoverStopped += (_, _) => _explainTip.IsOpen = false;
         InitializeFind();
         Editor.Options.ConvertTabsToSpaces = true;
         Editor.PreviewMouseWheel += OnPreviewMouseWheel;
@@ -56,6 +58,21 @@ public partial class EditorView : UserControl
     }
 
     public TextArea TextArea => Editor.TextArea;
+
+    private const double ExplainTipWidth = 440;
+    private readonly ToolTip _explainTip = new() { Placement = System.Windows.Controls.Primitives.PlacementMode.Mouse };
+
+    /// <summary>Shows what the hovered instruction does with the current registers (Settings > Tools).</summary>
+    private void OnMouseHover(object sender, MouseEventArgs e)
+    {
+        var view = Editor.TextArea.TextView;
+        var position = view.GetPositionFloor(e.GetPosition(view) + view.ScrollOffset);
+        if (position == null || _model?.Explain?.Invoke(position.Value.Line) is not { } text) return;
+        _explainTip.Content = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, MaxWidth = ExplainTipWidth };
+        _explainTip.PlacementTarget = view;
+        _explainTip.IsOpen = true;
+        e.Handled = true;
+    }
 
     private void ApplyTheme()
     {

@@ -24,6 +24,11 @@ public sealed class AppSettings
     public bool CodeAnalysis { get; set; } = true;
     /// <summary>Show the recent-instruction timeline in the CPU visualizer.</summary>
     public bool ExecutionTimeline { get; set; } = true;
+    // Tools (Settings > Tools); off by default so the standard interface stays simple.
+    public bool MemoryMap { get; set; }
+    public bool LineExplain { get; set; }
+    public bool CycleCounter { get; set; }
+    public bool CompareRuns { get; set; }
     /// <summary>Duration of one phase in the CPU visualizer animation (ms).</summary>
     public int VisualizerPhaseMs { get; set; } = 650;
     public bool CheckForUpdates { get; set; }

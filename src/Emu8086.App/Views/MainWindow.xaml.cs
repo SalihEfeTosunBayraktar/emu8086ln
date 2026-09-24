@@ -82,6 +82,7 @@ public partial class MainWindow : Window, IDialogService
         Screen.Hint = _vm.State == SessionState.WaitingInput ? Loc.Instance["screen.hint"] : "";
         Screen.Refresh();
         if (MemoryTab.IsSelected) Hex.Refresh();
+        if (MemoryMapTab.IsSelected && _vm.State != SessionState.Empty) MemoryMap.Refresh(_vm.Session, _vm.StackTop, _vm.Variables);
         if (DevicesTab.IsSelected)
         {
             foreach (var refresh in _deviceRefreshers) refresh();
@@ -337,7 +338,14 @@ public partial class MainWindow : Window, IDialogService
         _screenWindow.Show();
     }
 
-    private void ApplyUiSettings() => FontSize = SettingsService.Current.UiFontSize;
+    private void ApplyUiSettings()
+    {
+        var s = SettingsService.Current;
+        FontSize = s.UiFontSize;
+        MemoryMapTab.Visibility = s.MemoryMap ? Visibility.Visible : Visibility.Collapsed;
+        if (!s.MemoryMap && MemoryMapTab.IsSelected) ScreenTab.IsSelected = true;
+        CompareMenu.Visibility = s.CompareRuns ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     private void OnCheckUpdatesClick(object sender, RoutedEventArgs e) => _ = CheckForUpdatesAsync(silent: false);
 
@@ -407,6 +415,20 @@ public partial class MainWindow : Window, IDialogService
         _tools = new ToolsWindow(this);
         _tools.Closed += (_, _) => _tools = null;
         _tools.Show(ascii);
+    }
+
+    private CompareWindow? _compare;
+
+    private void OnCompareClick(object sender, RoutedEventArgs e)
+    {
+        if (_compare != null)
+        {
+            _compare.Activate();
+            return;
+        }
+        _compare = new CompareWindow(this, _vm, this);
+        _compare.Closed += (_, _) => _compare = null;
+        _compare.Show();
     }
 
     private void OnSettingsClick(object sender, RoutedEventArgs e) => new SettingsWindow(this, _vm).ShowDialog();

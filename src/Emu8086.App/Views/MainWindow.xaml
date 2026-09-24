@@ -191,6 +191,9 @@
                         <MenuItem Header="{svc:Tr cmd.asciiTable}" Click="OnAsciiClick">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.Keyboard}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem x:Name="CompareMenu" Header="{svc:Tr cmd.compare}" Click="OnCompareClick" Visibility="Collapsed">
+                            <MenuItem.Icon><Path Data="{StaticResource Icon.Chip}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
+                        </MenuItem>
                     </MenuItem>
                     <MenuItem Header="{svc:Tr menu.help}">
                         <MenuItem Header="{svc:Tr cmd.reference}" Click="OnReferenceClick">
@@ -625,6 +628,11 @@
                             </Grid>
                             </DockPanel>
                         </TabItem>
+                        <TabItem Header="{svc:Tr panel.memoryMap}" x:Name="MemoryMapTab" Visibility="Collapsed">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ctl:MemoryMapView x:Name="MemoryMap" Margin="10,6,10,10"/>
+                            </ScrollViewer>
+                        </TabItem>
                         <TabItem Header="{svc:Tr panel.devices}" x:Name="DevicesTab">
                             <ScrollViewer x:Name="DevicesScroll" VerticalScrollBarVisibility="Auto">
                                 <StackPanel x:Name="DevicesPanel" Margin="10,6,10,10"/>
@@ -644,6 +652,18 @@
                     </StackPanel>
                     <TextBlock x:Name="VersionText" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0"
                                Foreground="{DynamicResource Fg.Muted}"/>
+                    <TextBlock Text="{Binding CycleText}" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0"
+                               Foreground="{DynamicResource Accent}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource Mono}">
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                     <TextBlock Text="{Binding PositionText}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                Foreground="{DynamicResource Fg.Secondary}" Style="{StaticResource Mono}"/>
                 </DockPanel>

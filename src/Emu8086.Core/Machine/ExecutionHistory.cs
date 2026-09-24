@@ -11,6 +11,8 @@ public sealed class StepRecord
     /// <summary>Every byte read, including the instruction fetch (in order, may repeat).</summary>
     public List<(int Address, byte Value)> MemoryReads { get; } = new();
     public List<(int Port, int Value, bool IsWrite, bool Word)> PortAccesses { get; } = new();
+    /// <summary>Estimated clock cycles, when cycle counting is on.</summary>
+    public int Cycles { get; set; }
 }
 
 /// <summary>Bounded undo log used by "step back".</summary>

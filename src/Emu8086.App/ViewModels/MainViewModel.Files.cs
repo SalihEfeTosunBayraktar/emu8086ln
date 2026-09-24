@@ -147,6 +147,7 @@ public sealed partial class MainViewModel
         try
         {
             var doc = new DocumentViewModel(path, File.ReadAllText(path));
+            doc.Explain = line => ExplainLine(doc, line);
             doc.BreakpointsChanged += () => SyncBreakpoints(doc);
             Documents.Add(doc);
             SelectedDocument = doc;

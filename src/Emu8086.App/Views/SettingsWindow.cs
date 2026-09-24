@@ -109,6 +109,13 @@ public sealed class SettingsWindow
         Row(loc["settings.autoSaveInterval"], SliderWithValue(5, 600, S.AutoSaveIntervalSeconds, v => S.AutoSaveIntervalSeconds = (int)v));
         _content.Children.Add(DialogParts.Label(loc["settings.autoSaveHint"], true));
 
+        Section(loc["settings.tools"]);
+        _content.Children.Add(DialogParts.Label(loc["settings.toolsHint"], true));
+        Check(loc["settings.memoryMap"], S.MemoryMap, v => S.MemoryMap = v);
+        Check(loc["settings.lineExplain"], S.LineExplain, v => S.LineExplain = v);
+        Check(loc["settings.cycleCounter"], S.CycleCounter, v => S.CycleCounter = v);
+        Check(loc["settings.compareRuns"], S.CompareRuns, v => S.CompareRuns = v);
+
         Section(loc["settings.emulator"]);
         Check(loc["settings.timeline"], S.ExecutionTimeline, v => S.ExecutionTimeline = v);
         Check(loc["settings.externalIo"], S.ExternalIo, v => S.ExternalIo = v);

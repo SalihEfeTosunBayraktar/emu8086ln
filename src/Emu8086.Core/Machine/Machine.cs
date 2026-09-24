@@ -1,6 +1,8 @@
 using System.Text;
 using Emu8086.Core.Assembler;
+using Emu8086.Core.Analysis;
 using Emu8086.Core.Cpu;
+using Emu8086.Core.Disassembler;
 
 namespace Emu8086.Core.Machine;
 
@@ -69,6 +71,14 @@ public sealed class Machine : IDisposable
     public int ExitCode { get; set; }
     public bool HistoryEnabled { get; set; } = true;
 
+    /// <summary>Estimate 8086 clock cycles for every instruction (costs a decode per step).</summary>
+    public bool CountCycles { get; set; }
+
+    /// <summary>Estimated clock cycles since the program was loaded (see <see cref="CycleTable"/>).</summary>
+    public long Cycles { get; private set; }
+
+    private Disassembler8086? _decoder;
+
     /// <summary>Segment where each assembler segment was loaded (for mapping listing lines to CS:IP).</summary>
     public ushort[] SegmentBases { get; private set; } = [];
     public ProgramImage? Program { get; private set; }
@@ -110,6 +120,7 @@ public sealed class Machine : IDisposable
     public void Load(ProgramImage image)
     {
         PowerOn();
+        Cycles = 0;
         Program = image;
         switch (image.Format)
         {
@@ -211,6 +222,8 @@ public sealed class Machine : IDisposable
         if (IsStopped) return StepResult.Halted;
         if (StopReason == StopReason.Breakpoint) StopReason = StopReason.None;
 
+        var before = Cpu.GetState();
+        var instruction = CountCycles ? (_decoder ??= new Disassembler8086(Memory)).Decode(before.CS, before.IP) : null;
         StepResult result;
         if (!HistoryEnabled) result = Cpu.Step();
         else
@@ -223,6 +236,15 @@ public sealed class Machine : IDisposable
             if (result == StepResult.Waiting) History.Cancel();
             else History.Commit(Cpu.GetState());
         }
+        if (instruction != null && result != StepResult.Waiting)
+        {
+            var after = Cpu.GetState();
+            int next = before.IP + instruction.Bytes.Length;
+            bool jumped = after.CS != before.CS || after.IP != (ushort)next;
+            int cycles = CycleTable.Estimate(instruction, jumped, Math.Max(0, before.CX - after.CX));
+            Cycles += cycles;
+            if (HistoryEnabled && History.Last is { } record) record.Cycles = cycles;
+        }
         if (Cpu.Halted && StopReason == StopReason.None) StopReason = StopReason.HaltInstruction;
         return result;
     }
@@ -230,7 +252,9 @@ public sealed class Machine : IDisposable
     /// <summary>Undoes the last instruction. Returns false when there is nothing to undo.</summary>
     public bool StepBack()
     {
+        int cycles = History.Last?.Cycles ?? 0;
         if (!History.Undo(Cpu)) return false;
+        Cycles -= cycles;
         StopReason = StopReason.None;
         return true;
     }

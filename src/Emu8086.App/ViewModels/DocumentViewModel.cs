@@ -84,6 +84,9 @@ public sealed class DocumentViewModel : ObservableObject
 
     public IReadOnlyCollection<int> WarningLines => Warnings.Select(w => w.Line).ToHashSet();
 
+    /// <summary>Supplied by the main view model: explanation for a line of the running program, or null.</summary>
+    public Func<int, string?>? Explain { get; set; }
+
     /// <summary>Caret line reported by the editor view.</summary>
     public int CaretLine { get; set; } = 1;
 

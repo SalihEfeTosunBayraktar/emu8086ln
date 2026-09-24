@@ -85,6 +85,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         UpdateStateText();
         InitializeAutoSave();
         InitializeCodeAnalysis();
+        InitializeTools();
     }
 
     public EmulatorSession Session { get; }
