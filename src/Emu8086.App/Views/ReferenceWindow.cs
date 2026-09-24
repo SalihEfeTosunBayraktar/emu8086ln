@@ -44,10 +44,12 @@ public sealed class ReferenceWindow
             Title = loc["reference.title"],
             Width = 820,
             Height = 600,
-            Content = root,
             FontFamily = (FontFamily)Application.Current.FindResource("Font.UI"),
             FontSize = 13,
+            Icon = Application.Current.MainWindow?.Icon,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
         };
+        ToolWindowChrome.Apply(_window, root);
         _window.SetResourceReference(Window.BackgroundProperty, "Bg.Panel");
         _window.SetResourceReference(Window.ForegroundProperty, "Fg.Primary");
         Filter();

@@ -312,9 +312,12 @@ public partial class MainWindow : Window, IDialogService
         host.Children.Add(Screen);
         _screenWindow = new Window
         {
-            Title = Loc.Instance["panel.screen"], Owner = this, Width = 820, Height = 640, Content = host,
-            Background = Brushes.Black,
+            Title = Loc.Instance["panel.screen"], Owner = this, Width = 820, Height = 660, Icon = Icon,
+            FontFamily = FontFamily, FontSize = FontSize, WindowStartupLocation = WindowStartupLocation.CenterOwner,
         };
+        _screenWindow.SetResourceReference(BackgroundProperty, "Bg.Window");
+        _screenWindow.SetResourceReference(ForegroundProperty, "Fg.Primary");
+        ToolWindowChrome.Apply(_screenWindow, host);
         _screenWindow.Closed += (_, _) =>
         {
             host.Children.Remove(Screen);

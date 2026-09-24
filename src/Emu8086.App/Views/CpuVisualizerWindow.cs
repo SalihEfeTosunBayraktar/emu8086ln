@@ -45,12 +45,12 @@ public sealed class CpuVisualizerWindow
             Height = 780,
             MinWidth = 800,
             MinHeight = 500,
-            Content = BuildLayout(),
             FontFamily = (FontFamily)Application.Current.FindResource("Font.UI"),
             FontSize = 13,
             Icon = owner.Icon,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
         };
+        ToolWindowChrome.Apply(_window, BuildLayout());
         _window.SetBinding(Window.TitleProperty, new System.Windows.Data.Binding("[viz.title]") { Source = loc });
         _window.SetResourceReference(Window.BackgroundProperty, "Bg.Window");
         _window.SetResourceReference(Window.ForegroundProperty, "Fg.Primary");
