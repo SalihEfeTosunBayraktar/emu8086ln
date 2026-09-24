@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Emu8086.App/Emu8086.App.csproj" />
+    <Project Path="src/Emu8086.Core/Emu8086.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Emu8086.Tests/Emu8086.Tests.csproj" />
+  </Folder>
+</Solution>
