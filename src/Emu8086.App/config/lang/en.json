@@ -406,5 +406,8 @@
   "explain.XLAT": "Replaces AL with the byte at DS:[BX+AL] (table lookup).",
   "explain.shift": "{0} shifts/rotates the bits of {1} by {2}.",
   "explain.rep": "Repeats {0} CX ({1}) times.",
-  "explain.generic": "Executes {0}."
+  "explain.generic": "Executes {0}.",
+  "panel.editor": "Editor",
+  "cmd.panels": "Panels",
+  "cmd.resetLayout": "Reset panel layout"
 }

@@ -26,7 +26,7 @@ public partial class MainWindow : Window, IDialogService
     private readonly ConcurrentQueue<string> _portEvents = new();
     private readonly System.Collections.ObjectModel.ObservableCollection<string> _portLog = new();
     private TextBox? _printerBox;
-    private Window? _screenWindow;
+    private readonly DockLayoutService _layout;
     private CpuVisualizerWindow? _visualizer;
     private ToolsWindow? _tools;
 
@@ -53,6 +53,10 @@ public partial class MainWindow : Window, IDialogService
         _timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(RefreshIntervalMs) };
         _timer.Tick += OnTick;
 
+        _layout = new DockLayoutService(Dock);
+        _layout.Restore();
+        ApplyDockTheme();
+        ThemeService.ThemeChanged += ApplyDockTheme;
         ApplyUiSettings();
         SettingsService.Changed += ApplyUiSettings;
         RestoreWindowPlacement();
@@ -81,9 +85,9 @@ public partial class MainWindow : Window, IDialogService
         _vm.Tick();
         Screen.Hint = _vm.State == SessionState.WaitingInput ? Loc.Instance["screen.hint"] : "";
         Screen.Refresh();
-        if (MemoryTab.IsSelected) Hex.Refresh();
-        if (MemoryMapTab.IsSelected && _vm.State != SessionState.Empty) MemoryMap.Refresh(_vm.Session, _vm.StackTop, _vm.Variables);
-        if (DevicesTab.IsSelected)
+        if (Hex.IsVisible) Hex.Refresh();
+        if (MemoryMap.IsVisible && _vm.State != SessionState.Empty) MemoryMap.Refresh(_vm.Session, _vm.StackTop, _vm.Variables);
+        if (DevicesPanel.IsVisible)
         {
             foreach (var refresh in _deviceRefreshers) refresh();
             DrainPortLog();
@@ -99,7 +103,7 @@ public partial class MainWindow : Window, IDialogService
         }
         _timer.Stop();
         SaveWindowPlacement();
-        _screenWindow?.Close();
+        _layout.Save();
         _vm.Dispose();
     }
 
@@ -145,7 +149,7 @@ public partial class MainWindow : Window, IDialogService
 
     private void OnInputRequested()
     {
-        if (_screenWindow == null) ScreenTab.IsSelected = true;
+        _layout.Panel("Screen").IsSelected = true;
         Screen.Focus();
     }
 
@@ -235,7 +239,7 @@ public partial class MainWindow : Window, IDialogService
     {
         var card = devices.Select(d => _deviceCards.GetValueOrDefault(d)).FirstOrDefault(c => c != null);
         if (card == null) return;
-        DevicesTab.IsSelected = true;
+        _layout.Panel("Devices").IsSelected = true;
         Dispatcher.BeginInvoke(() => card.BringIntoView(), DispatcherPriority.Loaded);
     }
 
@@ -310,40 +314,39 @@ public partial class MainWindow : Window, IDialogService
         };
     }
 
-    /// <summary>Moves the emulator screen into its own resizable window (and back when closed).</summary>
-    private void OnFloatScreenClick(object sender, RoutedEventArgs e)
+    /// <summary>Moves the emulator screen into its own window; it can be docked back by dragging.</summary>
+    private void OnFloatScreenClick(object sender, RoutedEventArgs e) => _layout.Panel("Screen").Float();
+
+    private void OnResetLayoutClick(object sender, RoutedEventArgs e) => _layout.Reset();
+
+    /// <summary>Lists every panel with a check mark; unchecking hides it, checking shows it again.</summary>
+    private void OnPanelsMenuOpened(object sender, RoutedEventArgs e)
     {
-        if (_screenWindow != null)
+        var menu = (MenuItem)sender;
+        menu.Items.Clear();
+        foreach (var panel in _layout.Panels)
         {
-            _screenWindow.Activate();
-            return;
+            if (panel.ContentId == "MemoryMap" && !SettingsService.Current.MemoryMap) continue;
+            var item = new MenuItem { Header = panel.Title, IsCheckable = true, IsChecked = !panel.IsHidden };
+            item.Click += (_, _) =>
+            {
+                if (panel.IsHidden) panel.Show();
+                else panel.Hide();
+            };
+            menu.Items.Add(item);
         }
-        ScreenHost.Children.Remove(Screen);
-        var host = new Grid { Background = Brushes.Black };
-        host.Children.Add(Screen);
-        _screenWindow = new Window
-        {
-            Title = Loc.Instance["panel.screen"], Owner = this, Width = 820, Height = 660, Icon = Icon,
-            FontFamily = FontFamily, FontSize = FontSize, WindowStartupLocation = WindowStartupLocation.CenterOwner,
-        };
-        _screenWindow.SetResourceReference(BackgroundProperty, "Bg.Window");
-        _screenWindow.SetResourceReference(ForegroundProperty, "Fg.Primary");
-        ToolWindowChrome.Apply(_screenWindow, host);
-        _screenWindow.Closed += (_, _) =>
-        {
-            host.Children.Remove(Screen);
-            ScreenHost.Children.Add(Screen);
-            _screenWindow = null;
-        };
-        _screenWindow.Show();
     }
+
+    private void ApplyDockTheme() =>
+        Dock.Theme = ThemeService.Current == ThemeService.Light ? new AvalonDock.Themes.Vs2013LightTheme() : new AvalonDock.Themes.Vs2013DarkTheme();
 
     private void ApplyUiSettings()
     {
         var s = SettingsService.Current;
         FontSize = s.UiFontSize;
-        MemoryMapTab.Visibility = s.MemoryMap ? Visibility.Visible : Visibility.Collapsed;
-        if (!s.MemoryMap && MemoryMapTab.IsSelected) ScreenTab.IsSelected = true;
+        var memoryMap = _layout.Panel("MemoryMap");
+        if (s.MemoryMap && memoryMap.IsHidden) memoryMap.Show();
+        else if (!s.MemoryMap && !memoryMap.IsHidden) memoryMap.Hide();
         CompareMenu.Visibility = s.CompareRuns ? Visibility.Visible : Visibility.Collapsed;
     }
 

@@ -406,5 +406,8 @@
   "explain.XLAT": "AL, DS:[BX+AL] adresindeki baytla değiştirilir (tablodan okuma).",
   "explain.shift": "{0}, {1} bitlerini {2} kadar kaydırır/döndürür.",
   "explain.rep": "{0} komutu CX ({1}) kez tekrarlanır.",
-  "explain.generic": "{0} komutunu çalıştırır."
+  "explain.generic": "{0} komutunu çalıştırır.",
+  "panel.editor": "Editör",
+  "cmd.panels": "Paneller",
+  "cmd.resetLayout": "Panel yerleşimini sıfırla"
 }

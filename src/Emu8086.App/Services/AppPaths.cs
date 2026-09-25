@@ -18,6 +18,7 @@ public static class AppPaths
     public static string UserDataDirectory =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppFolderName);
 
+    public static string LayoutFile => Path.Combine(UserDataDirectory, "layout.xml");
     public static string SettingsFile => Path.Combine(UserDataDirectory, "settings.json");
 
     public static string DocumentsDirectory =>

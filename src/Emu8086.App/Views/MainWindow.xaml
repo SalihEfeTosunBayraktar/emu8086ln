@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:Emu8086.App.ViewModels"
         xmlns:views="clr-namespace:Emu8086.App.Views"
         xmlns:ctl="clr-namespace:Emu8086.App.Controls"
+        xmlns:ad="https://github.com/Dirkster99/AvalonDock"
         Title="{Binding WindowTitle}"
         Width="1500" Height="900" MinWidth="1000" MinHeight="620"
         WindowStartupLocation="CenterScreen"
@@ -183,6 +184,11 @@
                         <MenuItem Header="{svc:Tr cmd.floatScreen}" Click="OnFloatScreenClick">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.Screen}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
                         </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="{svc:Tr cmd.panels}" SubmenuOpened="OnPanelsMenuOpened">
+                            <MenuItem Header="-"/>
+                        </MenuItem>
+                        <MenuItem Header="{svc:Tr cmd.resetLayout}" Click="OnResetLayoutClick"/>
                     </MenuItem>
                     <MenuItem Header="{svc:Tr menu.tools}">
                         <MenuItem Header="{svc:Tr cmd.converter}" Click="OnConverterClick">
@@ -300,347 +306,311 @@
                 </DockPanel>
             </Border>
 
-            <!-- ===================== Main content ===================== -->
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="210" MinWidth="140"/>
-                    <ColumnDefinition Width="1"/>
-                    <ColumnDefinition Width="*" MinWidth="360"/>
-                    <ColumnDefinition Width="1"/>
-                    <ColumnDefinition Width="500" MinWidth="360"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Project explorer -->
-                <DockPanel Background="{DynamicResource Bg.Panel}">
-                    <DockPanel DockPanel.Dock="Top" Margin="0,2,4,0">
-                        <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" Command="{Binding NewFileCommand}" ToolTip="{svc:Tr cmd.newFile}" Padding="5,3">
-                            <Path Data="{StaticResource Icon.Plus}" Style="{StaticResource Icon}" Width="13" Height="13"/>
-                        </Button>
-                        <TextBlock Style="{StaticResource PanelTitle}" Text="{svc:Tr panel.explorer}"/>
-                    </DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10,2,10,6">
-                        <Path Data="{StaticResource Icon.Project}" Style="{StaticResource Icon}" Stroke="{DynamicResource Accent}" Width="15" Height="15"/>
-                        <TextBlock Text="{Binding ProjectName}" FontWeight="SemiBold" Margin="7,0,0,0" TextTrimming="CharacterEllipsis"/>
-                    </StackPanel>
-                    <ListBox x:Name="ProjectList" ItemsSource="{Binding ProjectFiles}" Margin="6,0" MouseDoubleClick="OnProjectFileDoubleClick">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Background="Transparent" ToolTip="{Binding Path}">
-                                    <StackPanel.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="{svc:Tr cmd.openFile}"
-                                                      Command="{Binding PlacementTarget.Tag.OpenProjectFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                                      CommandParameter="{Binding}"/>
-                                            <MenuItem Header="{svc:Tr cmd.setMain}"
-                                                      Command="{Binding PlacementTarget.Tag.SetMainFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                                      CommandParameter="{Binding}"/>
-                                        </ContextMenu>
-                                    </StackPanel.ContextMenu>
-                                    <StackPanel.Tag>
-                                        <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=Window}"/>
-                                    </StackPanel.Tag>
-                                    <Path Data="{StaticResource Icon.File}" Style="{StaticResource Icon}" Width="14" Height="14"
-                                          Stroke="{DynamicResource Fg.Secondary}"/>
-                                    <TextBlock Text="{Binding Name}" Margin="7,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsMain}" Value="True">
-                                                        <Setter Property="FontWeight" Value="Bold"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                    <Border Visibility="{Binding IsMain, Converter={StaticResource BoolToVis}}" Background="{DynamicResource Accent.Soft}"
-                                            CornerRadius="3" Padding="4,0" Margin="6,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{svc:Tr explorer.main}" FontSize="10" Foreground="{DynamicResource Accent}"/>
-                                    </Border>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </DockPanel>
-
-                <GridSplitter Grid.Column="1" Width="5" Margin="-2,0" HorizontalAlignment="Stretch" Background="Transparent"/>
-                <Border Grid.Column="1" Background="{DynamicResource Border}" IsHitTestVisible="False"/>
-
-                <!-- Editor + errors/output -->
-                <Grid Grid.Column="2">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" MinHeight="120"/>
-                        <RowDefinition Height="1"/>
-                        <RowDefinition Height="190" MinHeight="60"/>
-                    </Grid.RowDefinitions>
-
-                    <Grid Background="{DynamicResource Bg.Editor}">
-                        <TabControl x:Name="DocumentTabs" ItemsSource="{Binding Documents}" SelectedItem="{Binding SelectedDocument}"
-                                    Background="{DynamicResource Bg.Panel}">
-                            <TabControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Path Data="{StaticResource Icon.File}" Style="{StaticResource Icon}" Width="13" Height="13"/>
-                                        <TextBlock Text="{Binding Title}" Margin="6,0,6,0" VerticalAlignment="Center"/>
-                                        <Button Style="{StaticResource ToolButton}" Padding="3" Margin="0"
-                                                Command="{Binding DataContext.CloseDocumentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                CommandParameter="{Binding}">
-                                            <Path Data="{StaticResource Icon.Close}" Style="{StaticResource Icon}" Width="9" Height="9"/>
+            <!-- ===================== Main content (dockable panels) ===================== -->
+            <ad:DockingManager Grid.Row="2" x:Name="Dock" Background="{DynamicResource Bg.Window}">
+                <ad:LayoutRoot>
+                    <ad:LayoutPanel Orientation="Horizontal">
+                        <ad:LayoutAnchorablePane DockWidth="210">
+                            <ad:LayoutAnchorable ContentId="Explorer" Title="{svc:Tr panel.explorer}" CanClose="False">
+                                <DockPanel Background="{DynamicResource Bg.Panel}">
+                                    <DockPanel DockPanel.Dock="Top" Margin="0,2,4,0" LastChildFill="False">
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" Command="{Binding NewFileCommand}" ToolTip="{svc:Tr cmd.newFile}" Padding="5,3">
+                                            <Path Data="{StaticResource Icon.Plus}" Style="{StaticResource Icon}" Width="13" Height="13"/>
                                         </Button>
+                                    </DockPanel>
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10,2,10,6">
+                                        <Path Data="{StaticResource Icon.Project}" Style="{StaticResource Icon}" Stroke="{DynamicResource Accent}" Width="15" Height="15"/>
+                                        <TextBlock Text="{Binding ProjectName}" FontWeight="SemiBold" Margin="7,0,0,0" TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
-                                </DataTemplate>
-                            </TabControl.ItemTemplate>
-                            <TabControl.ContentTemplate>
-                                <DataTemplate>
-                                    <views:EditorView/>
-                                </DataTemplate>
-                            </TabControl.ContentTemplate>
-                        </TabControl>
-                        <!-- Empty state -->
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
-                                    Visibility="{Binding SelectedDocument, Converter={StaticResource InvNullToVis}}">
-                            <Image Source="/Assets/logo.png" Width="72" Height="72" RenderOptions.BitmapScalingMode="HighQuality"/>
-                            <TextBlock Text="{svc:Tr empty.title}" FontSize="18" Margin="0,14,0,6" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{svc:Tr empty.hint}" Foreground="{DynamicResource Fg.Secondary}" HorizontalAlignment="Center"/>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
-                                <Button Style="{StaticResource AccentButton}" Command="{Binding NewProjectCommand}" Content="{svc:Tr cmd.newProject}" Margin="4"/>
-                                <Button Command="{Binding OpenProjectCommand}" Content="{svc:Tr cmd.openProject}" Margin="4"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Grid>
-
-                    <GridSplitter Grid.Row="1" Height="5" Margin="0,-2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
-                    <Border Grid.Row="1" Background="{DynamicResource Border}" IsHitTestVisible="False"/>
-
-                    <TabControl Grid.Row="2" x:Name="BottomTabs" Background="{DynamicResource Bg.Panel}">
-                        <TabItem>
-                            <TabItem.Header>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{svc:Tr panel.errors}"/>
-                                    <Border Background="{DynamicResource Error}" CornerRadius="7" Padding="5,0" Margin="6,0,0,0"
-                                            Visibility="{Binding Diagnostics.Count, Converter={StaticResource CountToVis}}">
-                                        <TextBlock Text="{Binding Diagnostics.Count}" FontSize="10" Foreground="White"/>
-                                    </Border>
-                                </StackPanel>
-                            </TabItem.Header>
-                            <ListBox ItemsSource="{Binding Diagnostics}" Margin="4" MouseDoubleClick="OnDiagnosticDoubleClick"
-                                     Background="{DynamicResource Bg.Panel}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Path Data="{Binding IsError, Converter={StaticResource SeverityIcon}}" Style="{StaticResource Icon}"
-                                                  Stroke="{Binding IsError, Converter={StaticResource StatusBrush}}" Width="14" Height="14"/>
-                                            <TextBlock Margin="8,0,0,0" Foreground="{DynamicResource Fg.Muted}" MinWidth="70">
-                                                <Run Text="{svc:Tr errors.line}"/> <Run Text="{Binding Line, Mode=OneWay}"/>
-                                            </TextBlock>
-                                            <TextBlock Text="{Binding Message}" Margin="4,0,0,0" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </TabItem>
-                        <TabItem Header="{svc:Tr panel.output}">
-                            <DockPanel>
-                                <Button DockPanel.Dock="Right" VerticalAlignment="Top" Style="{StaticResource ToolButton}" Margin="4"
-                                        Command="{Binding ClearOutputCommand}" ToolTip="{svc:Tr cmd.clearOutput}">
-                                    <Path Data="{StaticResource Icon.Close}" Style="{StaticResource Icon}" Width="11" Height="11"/>
-                                </Button>
-                                <ListBox x:Name="OutputList" ItemsSource="{Binding Output}" Margin="4" Background="{DynamicResource Bg.Panel}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Time}" Foreground="{DynamicResource Fg.Muted}" Style="{StaticResource Mono}"/>
-                                                <TextBlock Text="{Binding Text}" Margin="10,0,0,0" TextWrapping="Wrap"
-                                                           Foreground="{Binding Kind, Converter={StaticResource StatusBrush}}"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </DockPanel>
-                        </TabItem>
-                    </TabControl>
-                </Grid>
-
-                <GridSplitter Grid.Column="3" Width="5" Margin="-2,0" HorizontalAlignment="Stretch" Background="Transparent"/>
-                <Border Grid.Column="3" Background="{DynamicResource Border}" IsHitTestVisible="False"/>
-
-                <!-- Debug panels -->
-                <Grid Grid.Column="4" Background="{DynamicResource Bg.Panel}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource PanelTitle}" Text="{svc:Tr panel.registers}"/>
-                        <ItemsControl ItemsSource="{Binding Registers}" Margin="8,0,8,2" Grid.IsSharedSizeScope="True">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <UniformGrid Columns="3"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="2,2" ToolTip="{Binding Details}">
-                                        <TextBlock Text="{Binding Name}" Width="24" VerticalAlignment="Center" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource Fg.Secondary}" Style="{StaticResource Mono}"/>
-                                        <StackPanel Orientation="Horizontal" Visibility="{Binding Splittable, Converter={StaticResource BoolToVis}}">
-                                            <TextBox Style="{StaticResource RegisterBox}" Text="{Binding High, UpdateSourceTrigger=LostFocus}" Width="34"
-                                                     KeyDown="OnRegisterKeyDown"/>
-                                            <TextBox Style="{StaticResource RegisterBox}" Text="{Binding Low, UpdateSourceTrigger=LostFocus}" Width="34"
-                                                     KeyDown="OnRegisterKeyDown"/>
-                                        </StackPanel>
-                                        <TextBox Style="{StaticResource RegisterBox}" Text="{Binding Text, UpdateSourceTrigger=LostFocus}" Width="70"
-                                                 KeyDown="OnRegisterKeyDown"
-                                                 Visibility="{Binding Splittable, Converter={StaticResource InvBoolToVis}}"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <TextBlock Style="{StaticResource PanelTitle}" Text="{svc:Tr panel.flags}" Margin="10,6,10,2"/>
-                        <ItemsControl ItemsSource="{Binding Flags}" Margin="10,0,10,8">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <CheckBox IsChecked="{Binding Value}" Margin="0,2,12,2"
-                                              ToolTip="{Binding DescriptionKey, Converter={StaticResource LocKey}}">
-                                        <TextBlock Text="{Binding Name}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock" BasedOn="{StaticResource Mono}">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Changed}" Value="True">
-                                                            <Setter Property="Foreground" Value="{DynamicResource Changed}"/>
-                                                            <Setter Property="FontWeight" Value="Bold"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </CheckBox>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <Border Height="1" Background="{DynamicResource Border}"/>
-                    </StackPanel>
-
-                    <TabControl Grid.Row="1" x:Name="DebugTabs">
-                        <TabItem x:Name="ScreenTab">
-                            <TabItem.Header>
-                                <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource Icon.Screen}" Style="{StaticResource Icon}" Width="13" Height="13"/>
-                                    <TextBlock Text="{svc:Tr panel.screen}" Margin="6,0,0,0"/>
-                                </StackPanel>
-                            </TabItem.Header>
-                            <Grid x:Name="ScreenHost" Background="Black">
-                                <ctl:ScreenView x:Name="Screen"/>
-                            </Grid>
-                        </TabItem>
-                        <TabItem Header="{svc:Tr panel.memory}" x:Name="MemoryTab">
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,8,8,4">
-                                    <TextBox x:Name="MemoryAddress" Width="110" Style="{StaticResource MonoBox}" Text="0700:0100" KeyDown="OnMemoryAddressKeyDown"/>
-                                    <Button Content="{svc:Tr memory.go}" Margin="6,0,0,0" Padding="10,3" Click="OnMemoryGoClick"/>
-                                    <Button Content="CS:IP" Margin="6,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="CS"/>
-                                    <Button Content="DS:0" Margin="4,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="DS"/>
-                                    <Button Content="SS:SP" Margin="4,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="SS"/>
-                                    <Button Content="B800:0" Margin="4,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="VIDEO"/>
-                                </StackPanel>
-                                <ScrollBar DockPanel.Dock="Right" x:Name="MemoryScroll" Orientation="Vertical" Minimum="0" Maximum="65520"
-                                           SmallChange="16" LargeChange="256" Value="{Binding Offset, ElementName=Hex, Mode=TwoWay}"/>
-                                <ctl:HexView x:Name="Hex"/>
-                            </DockPanel>
-                        </TabItem>
-                        <TabItem Header="{svc:Tr panel.stack}">
-                            <ListBox ItemsSource="{Binding Stack}" Margin="6">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Address}" Style="{StaticResource Mono}" Foreground="{DynamicResource Fg.Muted}" Width="90"/>
-                                            <TextBlock Text="{Binding Value}" Style="{StaticResource Mono}"/>
-                                            <TextBlock Text="{svc:Tr stack.top}" Margin="12,0,0,0" Foreground="{DynamicResource Accent}"
-                                                       Visibility="{Binding IsTop, Converter={StaticResource BoolToVis}}"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </TabItem>
-                        <TabItem Header="{svc:Tr panel.disassembly}">
-                            <ListBox ItemsSource="{Binding Disassembly}" Margin="6">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="16"/>
-                                                <ColumnDefinition Width="86"/>
-                                                <ColumnDefinition Width="110"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Ellipse Width="8" Height="8" Fill="{DynamicResource Breakpoint}"
-                                                     Visibility="{Binding HasBreakpoint, Converter={StaticResource BoolToVis}}"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding AddressText}" Style="{StaticResource Mono}" Foreground="{DynamicResource Fg.Muted}"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding Bytes}" Style="{StaticResource Mono}" Foreground="{DynamicResource Fg.Muted}"
-                                                       TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Grid.Column="3" Text="{Binding Text}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Mono}">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                <Setter Property="Foreground" Value="{DynamicResource Success}"/>
-                                                                <Setter Property="FontWeight" Value="Bold"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </TabItem>
-                        <TabItem Header="{svc:Tr panel.variables}">
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,8,8,0">
-                                    <TextBlock Text="{svc:Tr variables.format}" VerticalAlignment="Center" Foreground="{DynamicResource Fg.Secondary}"/>
-                                    <ComboBox ItemsSource="{Binding VariableFormats}" SelectedItem="{Binding VariableFormat}" Width="110" Margin="8,0,0,0"/>
-                                    <TextBlock Text="{svc:Tr variables.editHint}" VerticalAlignment="Center" Margin="12,0,0,0"
-                                               Foreground="{DynamicResource Fg.Muted}" FontSize="11"/>
-                                </StackPanel>
-                            <Grid>
-                                <ListBox ItemsSource="{Binding Variables}" Margin="6" MouseDoubleClick="OnVariableDoubleClick">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Margin="0,2">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                                    <TextBlock Text="{Binding Type}" Margin="8,0,0,0" Foreground="{DynamicResource Syntax.Directive}" Style="{StaticResource Mono}"/>
-                                                    <TextBlock Text="{Binding Address}" Margin="8,0,0,0" Foreground="{DynamicResource Fg.Muted}" Style="{StaticResource Mono}"/>
+                                    <ListBox x:Name="ProjectList" ItemsSource="{Binding ProjectFiles}" Margin="6,0" MouseDoubleClick="OnProjectFileDoubleClick">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Background="Transparent" ToolTip="{Binding Path}">
+                                                    <StackPanel.ContextMenu>
+                                                        <ContextMenu>
+                                                            <MenuItem Header="{svc:Tr cmd.openFile}"
+                                                                      Command="{Binding PlacementTarget.Tag.OpenProjectFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                                      CommandParameter="{Binding}"/>
+                                                            <MenuItem Header="{svc:Tr cmd.setMain}"
+                                                                      Command="{Binding PlacementTarget.Tag.SetMainFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                                      CommandParameter="{Binding}"/>
+                                                        </ContextMenu>
+                                                    </StackPanel.ContextMenu>
+                                                    <StackPanel.Tag>
+                                                        <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=Window}"/>
+                                                    </StackPanel.Tag>
+                                                    <Path Data="{StaticResource Icon.File}" Style="{StaticResource Icon}" Width="14" Height="14"
+                                                          Stroke="{DynamicResource Fg.Secondary}"/>
+                                                    <TextBlock Text="{Binding Name}" Margin="7,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsMain}" Value="True">
+                                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                    <Border Visibility="{Binding IsMain, Converter={StaticResource BoolToVis}}" Background="{DynamicResource Accent.Soft}"
+                                                            CornerRadius="3" Padding="4,0" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{svc:Tr explorer.main}" FontSize="10" Foreground="{DynamicResource Accent}"/>
+                                                    </Border>
                                                 </StackPanel>
-                                                <TextBlock Text="{Binding Value}" Style="{StaticResource Mono}" TextWrapping="Wrap"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+                            </ad:LayoutAnchorable>
+                        </ad:LayoutAnchorablePane>
+                        <ad:LayoutPanel Orientation="Vertical">
+                            <ad:LayoutDocumentPane>
+                                <ad:LayoutDocument ContentId="Editor" Title="{svc:Tr panel.editor}" CanClose="False" CanFloat="False">
+                                    <Grid Background="{DynamicResource Bg.Editor}">
+                                        <TabControl x:Name="DocumentTabs" ItemsSource="{Binding Documents}" SelectedItem="{Binding SelectedDocument}"
+                                                    Background="{DynamicResource Bg.Panel}">
+                                            <TabControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Path Data="{StaticResource Icon.File}" Style="{StaticResource Icon}" Width="13" Height="13"/>
+                                                        <TextBlock Text="{Binding Title}" Margin="6,0,6,0" VerticalAlignment="Center"/>
+                                                        <Button Style="{StaticResource ToolButton}" Padding="3" Margin="0"
+                                                                Command="{Binding DataContext.CloseDocumentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}">
+                                                            <Path Data="{StaticResource Icon.Close}" Style="{StaticResource Icon}" Width="9" Height="9"/>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TabControl.ItemTemplate>
+                                            <TabControl.ContentTemplate>
+                                                <DataTemplate>
+                                                    <views:EditorView/>
+                                                </DataTemplate>
+                                            </TabControl.ContentTemplate>
+                                        </TabControl>
+                                        <!-- Empty state -->
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                    Visibility="{Binding SelectedDocument, Converter={StaticResource InvNullToVis}}">
+                                            <Image Source="/Assets/logo.png" Width="72" Height="72" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            <TextBlock Text="{svc:Tr empty.title}" FontSize="18" Margin="0,14,0,6" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{svc:Tr empty.hint}" Foreground="{DynamicResource Fg.Secondary}" HorizontalAlignment="Center"/>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                                                <Button Style="{StaticResource AccentButton}" Command="{Binding NewProjectCommand}" Content="{svc:Tr cmd.newProject}" Margin="4"/>
+                                                <Button Command="{Binding OpenProjectCommand}" Content="{svc:Tr cmd.openProject}" Margin="4"/>
                                             </StackPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                                <TextBlock Text="{svc:Tr variables.empty}" Foreground="{DynamicResource Fg.Muted}" HorizontalAlignment="Center"
-                                           VerticalAlignment="Center" Visibility="{Binding Variables.Count, Converter={StaticResource CountToVis}, ConverterParameter=invert}"/>
-                            </Grid>
-                            </DockPanel>
-                        </TabItem>
-                        <TabItem Header="{svc:Tr panel.memoryMap}" x:Name="MemoryMapTab" Visibility="Collapsed">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <ctl:MemoryMapView x:Name="MemoryMap" Margin="10,6,10,10"/>
-                            </ScrollViewer>
-                        </TabItem>
-                        <TabItem Header="{svc:Tr panel.devices}" x:Name="DevicesTab">
-                            <ScrollViewer x:Name="DevicesScroll" VerticalScrollBarVisibility="Auto">
-                                <StackPanel x:Name="DevicesPanel" Margin="10,6,10,10"/>
-                            </ScrollViewer>
-                        </TabItem>
-                    </TabControl>
-                </Grid>
-            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+                                </ad:LayoutDocument>
+                            </ad:LayoutDocumentPane>
+                            <ad:LayoutAnchorablePane DockHeight="190">
+                                <ad:LayoutAnchorable ContentId="Errors" Title="{svc:Tr panel.errors}" CanClose="False">
+                                    <ListBox ItemsSource="{Binding Diagnostics}" Margin="4" MouseDoubleClick="OnDiagnosticDoubleClick"
+                                             Background="{DynamicResource Bg.Panel}">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="{Binding IsError, Converter={StaticResource SeverityIcon}}" Style="{StaticResource Icon}"
+                                                          Stroke="{Binding IsError, Converter={StaticResource StatusBrush}}" Width="14" Height="14"/>
+                                                    <TextBlock Margin="8,0,0,0" Foreground="{DynamicResource Fg.Muted}" MinWidth="70">
+                                                        <Run Text="{svc:Tr errors.line}"/> <Run Text="{Binding Line, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text="{Binding Message}" Margin="4,0,0,0" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </ad:LayoutAnchorable>
+                                <ad:LayoutAnchorable ContentId="Output" Title="{svc:Tr panel.output}" CanClose="False">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" VerticalAlignment="Top" Style="{StaticResource ToolButton}" Margin="4"
+                                                Command="{Binding ClearOutputCommand}" ToolTip="{svc:Tr cmd.clearOutput}">
+                                            <Path Data="{StaticResource Icon.Close}" Style="{StaticResource Icon}" Width="11" Height="11"/>
+                                        </Button>
+                                        <ListBox x:Name="OutputList" ItemsSource="{Binding Output}" Margin="4" Background="{DynamicResource Bg.Panel}">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding Time}" Foreground="{DynamicResource Fg.Muted}" Style="{StaticResource Mono}"/>
+                                                        <TextBlock Text="{Binding Text}" Margin="10,0,0,0" TextWrapping="Wrap"
+                                                                   Foreground="{Binding Kind, Converter={StaticResource StatusBrush}}"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </DockPanel>
+                                </ad:LayoutAnchorable>
+                            </ad:LayoutAnchorablePane>
+                        </ad:LayoutPanel>
+                        <ad:LayoutPanel Orientation="Vertical" DockWidth="500">
+                            <ad:LayoutAnchorablePane DockHeight="215">
+                                <ad:LayoutAnchorable ContentId="Registers" Title="{svc:Tr panel.registers}" CanClose="False">
+                                    <StackPanel>
+                                        <ItemsControl ItemsSource="{Binding Registers}" Margin="8,0,8,2" Grid.IsSharedSizeScope="True">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <UniformGrid Columns="3"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Margin="2,2" ToolTip="{Binding Details}">
+                                                        <TextBlock Text="{Binding Name}" Width="24" VerticalAlignment="Center" FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource Fg.Secondary}" Style="{StaticResource Mono}"/>
+                                                        <StackPanel Orientation="Horizontal" Visibility="{Binding Splittable, Converter={StaticResource BoolToVis}}">
+                                                            <TextBox Style="{StaticResource RegisterBox}" Text="{Binding High, UpdateSourceTrigger=LostFocus}" Width="34"
+                                                                     KeyDown="OnRegisterKeyDown"/>
+                                                            <TextBox Style="{StaticResource RegisterBox}" Text="{Binding Low, UpdateSourceTrigger=LostFocus}" Width="34"
+                                                                     KeyDown="OnRegisterKeyDown"/>
+                                                        </StackPanel>
+                                                        <TextBox Style="{StaticResource RegisterBox}" Text="{Binding Text, UpdateSourceTrigger=LostFocus}" Width="70"
+                                                                 KeyDown="OnRegisterKeyDown"
+                                                                 Visibility="{Binding Splittable, Converter={StaticResource InvBoolToVis}}"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Style="{StaticResource PanelTitle}" Text="{svc:Tr panel.flags}" Margin="10,6,10,2"/>
+                                        <ItemsControl ItemsSource="{Binding Flags}" Margin="10,0,10,8">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding Value}" Margin="0,2,12,2"
+                                                              ToolTip="{Binding DescriptionKey, Converter={StaticResource LocKey}}">
+                                                        <TextBlock Text="{Binding Name}">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock" BasedOn="{StaticResource Mono}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Changed}" Value="True">
+                                                                            <Setter Property="Foreground" Value="{DynamicResource Changed}"/>
+                                                                            <Setter Property="FontWeight" Value="Bold"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </CheckBox>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Border Height="1" Background="{DynamicResource Border}"/>
+                                    </StackPanel>
+                                </ad:LayoutAnchorable>
+                            </ad:LayoutAnchorablePane>
+                            <ad:LayoutAnchorablePane>
+                                <ad:LayoutAnchorable ContentId="Screen" Title="{svc:Tr panel.screen}" CanClose="False">
+                                    <Grid x:Name="ScreenHost" Background="Black">
+                                        <ctl:ScreenView x:Name="Screen"/>
+                                    </Grid>
+                                </ad:LayoutAnchorable>
+                                <ad:LayoutAnchorable ContentId="Memory" Title="{svc:Tr panel.memory}" CanClose="False">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,8,8,4">
+                                            <TextBox x:Name="MemoryAddress" Width="110" Style="{StaticResource MonoBox}" Text="0700:0100" KeyDown="OnMemoryAddressKeyDown"/>
+                                            <Button Content="{svc:Tr memory.go}" Margin="6,0,0,0" Padding="10,3" Click="OnMemoryGoClick"/>
+                                            <Button Content="CS:IP" Margin="6,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="CS"/>
+                                            <Button Content="DS:0" Margin="4,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="DS"/>
+                                            <Button Content="SS:SP" Margin="4,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="SS"/>
+                                            <Button Content="B800:0" Margin="4,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="VIDEO"/>
+                                        </StackPanel>
+                                        <ScrollBar DockPanel.Dock="Right" x:Name="MemoryScroll" Orientation="Vertical" Minimum="0" Maximum="65520"
+                                                   SmallChange="16" LargeChange="256" Value="{Binding Offset, ElementName=Hex, Mode=TwoWay}"/>
+                                        <ctl:HexView x:Name="Hex"/>
+                                    </DockPanel>
+                                </ad:LayoutAnchorable>
+                                <ad:LayoutAnchorable ContentId="Stack" Title="{svc:Tr panel.stack}" CanClose="False">
+                                    <ListBox ItemsSource="{Binding Stack}" Margin="6">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Address}" Style="{StaticResource Mono}" Foreground="{DynamicResource Fg.Muted}" Width="90"/>
+                                                    <TextBlock Text="{Binding Value}" Style="{StaticResource Mono}"/>
+                                                    <TextBlock Text="{svc:Tr stack.top}" Margin="12,0,0,0" Foreground="{DynamicResource Accent}"
+                                                               Visibility="{Binding IsTop, Converter={StaticResource BoolToVis}}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </ad:LayoutAnchorable>
+                                <ad:LayoutAnchorable ContentId="Disassembly" Title="{svc:Tr panel.disassembly}" CanClose="False">
+                                    <ListBox ItemsSource="{Binding Disassembly}" Margin="6">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="16"/>
+                                                        <ColumnDefinition Width="86"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Ellipse Width="8" Height="8" Fill="{DynamicResource Breakpoint}"
+                                                             Visibility="{Binding HasBreakpoint, Converter={StaticResource BoolToVis}}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding AddressText}" Style="{StaticResource Mono}" Foreground="{DynamicResource Fg.Muted}"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Bytes}" Style="{StaticResource Mono}" Foreground="{DynamicResource Fg.Muted}"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding Text}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock" BasedOn="{StaticResource Mono}">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                                        <Setter Property="Foreground" Value="{DynamicResource Success}"/>
+                                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </ad:LayoutAnchorable>
+                                <ad:LayoutAnchorable ContentId="Variables" Title="{svc:Tr panel.variables}" CanClose="False">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,8,8,0">
+                                            <TextBlock Text="{svc:Tr variables.format}" VerticalAlignment="Center" Foreground="{DynamicResource Fg.Secondary}"/>
+                                            <ComboBox ItemsSource="{Binding VariableFormats}" SelectedItem="{Binding VariableFormat}" Width="110" Margin="8,0,0,0"/>
+                                            <TextBlock Text="{svc:Tr variables.editHint}" VerticalAlignment="Center" Margin="12,0,0,0"
+                                                       Foreground="{DynamicResource Fg.Muted}" FontSize="11"/>
+                                        </StackPanel>
+                                    <Grid>
+                                        <ListBox ItemsSource="{Binding Variables}" Margin="6" MouseDoubleClick="OnVariableDoubleClick">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="0,2">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                            <TextBlock Text="{Binding Type}" Margin="8,0,0,0" Foreground="{DynamicResource Syntax.Directive}" Style="{StaticResource Mono}"/>
+                                                            <TextBlock Text="{Binding Address}" Margin="8,0,0,0" Foreground="{DynamicResource Fg.Muted}" Style="{StaticResource Mono}"/>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding Value}" Style="{StaticResource Mono}" TextWrapping="Wrap"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                        <TextBlock Text="{svc:Tr variables.empty}" Foreground="{DynamicResource Fg.Muted}" HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" Visibility="{Binding Variables.Count, Converter={StaticResource CountToVis}, ConverterParameter=invert}"/>
+                                    </Grid>
+                                    </DockPanel>
+                                </ad:LayoutAnchorable>
+                                <ad:LayoutAnchorable ContentId="MemoryMap" Title="{svc:Tr panel.memoryMap}" CanClose="False">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ctl:MemoryMapView x:Name="MemoryMap" Margin="10,6,10,10"/>
+                                    </ScrollViewer>
+                                </ad:LayoutAnchorable>
+                                <ad:LayoutAnchorable ContentId="Devices" Title="{svc:Tr panel.devices}" CanClose="False">
+                                    <ScrollViewer x:Name="DevicesScroll" VerticalScrollBarVisibility="Auto">
+                                        <StackPanel x:Name="DevicesPanel" Margin="10,6,10,10"/>
+                                    </ScrollViewer>
+                                </ad:LayoutAnchorable>
+                            </ad:LayoutAnchorablePane>
+                        </ad:LayoutPanel>
+                    </ad:LayoutPanel>
+                </ad:LayoutRoot>
+            </ad:DockingManager>
 
             <!-- ===================== Status bar ===================== -->
             <Border Grid.Row="3" Background="{DynamicResource Bg.Panel}" BorderBrush="{DynamicResource Border}" BorderThickness="0,1,0,0">

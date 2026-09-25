@@ -406,5 +406,8 @@
   "explain.XLAT": "Ersetzt AL durch das Byte bei DS:[BX+AL] (Tabellenzugriff).",
   "explain.shift": "{0} schiebt/rotiert die Bits von {1} um {2}.",
   "explain.rep": "Wiederholt {0} CX ({1}) Mal.",
-  "explain.generic": "Führt {0} aus."
+  "explain.generic": "Führt {0} aus.",
+  "panel.editor": "Editor",
+  "cmd.panels": "Bereiche",
+  "cmd.resetLayout": "Bereichslayout zurücksetzen"
 }

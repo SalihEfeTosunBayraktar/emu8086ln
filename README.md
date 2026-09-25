@@ -37,6 +37,7 @@ Source-compatible with emu8086 programs (`#make_COM#`, `emu8086.inc`, virtual de
 - **Instruction timeline** – the CPU visualizer lists recent instructions with the units they used; click one to replay it or rewind to it (can be turned off in Settings).
 - **Report export** – save the screen, registers, flags, output and source as a single HTML file, handy for homework.
 - **Optional tools** (Settings > Tools, off by default): memory map tab with an animated stack and variable blocks, hover explanations of each line with the current register values, an approximate 8086 cycle counter, and side-by-side comparison of two programs.
+- **Dockable panels** – drag any panel (project, errors, output, registers, screen, memory, stack, disassembly, variables, devices) to another edge, into another group or out as its own window; the layout is remembered, and View > Panels / Reset panel layout bring things back.
 - **Updates** – shows the version, checks GitHub Releases on request (or at startup if enabled) and installs updates.
 
 ## Download
