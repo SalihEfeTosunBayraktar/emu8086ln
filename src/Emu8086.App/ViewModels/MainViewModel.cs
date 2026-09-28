@@ -64,7 +64,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OpenExampleCommand = new RelayCommand(p => { if (p is string path) OpenExample(path); });
         OpenRecentCommand = new RelayCommand(p => { if (p is string path) OpenProjectPath(path); });
         BuildCommand = new RelayCommand(() => Build(), () => !Session.IsBusy && CanBuild());
-        RunCommand = new RelayCommand(Run, () => !Session.IsBusy && CanBuild());
+        RunCommand = new RelayCommand(Run, () => CanBuild() && (!Session.IsBusy || ShownCodeDiffersFromRunning()));
         PauseCommand = new RelayCommand(Session.Pause, () => Session.IsBusy);
         StopCommand = new RelayCommand(ResetProgram, () => Session.State != SessionState.Empty);
         StepIntoCommand = new RelayCommand(() => Step(Session.StepInto), () => !Session.IsBusy && CanBuild());

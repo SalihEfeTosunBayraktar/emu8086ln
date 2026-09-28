@@ -84,6 +84,14 @@ public sealed partial class MainViewModel
         return SelectedDocument;
     }
 
+    /// <summary>
+    /// True when the .asm file on screen is not the running program (another file, or edited
+    /// since the build); Run then stops the old program and starts the shown one.
+    /// </summary>
+    private bool ShownCodeDiffersFromRunning() =>
+        SelectedDocument is { } shown && IsRunnable(shown.FilePath)
+        && (shown != _buildDocument || shown.Document.Text != _builtText);
+
     private static bool IsRunnable(string path) =>
         Path.GetExtension(path).Equals(".asm", StringComparison.OrdinalIgnoreCase);
 
