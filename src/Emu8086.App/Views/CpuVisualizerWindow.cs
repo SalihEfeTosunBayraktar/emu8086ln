@@ -16,7 +16,7 @@ namespace Emu8086.App.Views;
 public sealed class CpuVisualizerWindow
 {
     private const double MinPhaseMs = 150;
-    private const double MaxPhaseMs = 2000;
+    private const double MaxPhaseMs = 4000;
     private const int TimelineLength = 40;
 
     private readonly Window _window;
@@ -135,8 +135,8 @@ public sealed class CpuVisualizerWindow
         panel.Children.Add(SliderLabel("tool.speed"));
         var speed = new Slider
         {
-            Width = 110, Minimum = 0, Maximum = 1000, IsDirectionReversed = true, IsSnapToTickEnabled = true,
-            Ticks = new DoubleCollection([0, 1, 5, 10, 25, 50, 100, 200, 400, 700, 1000]), VerticalAlignment = VerticalAlignment.Center,
+            Width = 110, Minimum = 0, Maximum = 2000, IsDirectionReversed = true, IsSnapToTickEnabled = true,
+            Ticks = new DoubleCollection([0, 1, 5, 10, 25, 50, 100, 200, 400, 700, 1000, 1250, 1500, 1750, 2000]), VerticalAlignment = VerticalAlignment.Center,
         };
         speed.SetBinding(System.Windows.Controls.Primitives.RangeBase.ValueProperty,
             new System.Windows.Data.Binding(nameof(MainViewModel.StepDelay)) { Source = _vm, Mode = System.Windows.Data.BindingMode.TwoWay });

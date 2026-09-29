@@ -288,8 +288,8 @@
                         </Button>
                         <Border Style="{StaticResource Divider}"/>
                         <TextBlock Text="{svc:Tr tool.speed}" Foreground="{DynamicResource Fg.Secondary}" VerticalAlignment="Center" Margin="4,0,8,0"/>
-                        <Slider Width="120" Minimum="0" Maximum="1000" Value="{Binding StepDelay}" IsDirectionReversed="True"
-                                IsSnapToTickEnabled="True" Ticks="0,1,5,10,25,50,100,200,400,700,1000" VerticalAlignment="Center"
+                        <Slider Width="120" Minimum="0" Maximum="2000" Value="{Binding StepDelay}" IsDirectionReversed="True"
+                                IsSnapToTickEnabled="True" Ticks="0,1,5,10,25,50,100,200,400,700,1000,1250,1500,1750,2000" VerticalAlignment="Center"
                                 ToolTip="{svc:Tr tool.speedTip}"/>
                         <TextBlock Text="{Binding SpeedText}" Foreground="{DynamicResource Fg.Muted}" VerticalAlignment="Center" Margin="8,0,0,0" MinWidth="70"/>
                     </StackPanel>
