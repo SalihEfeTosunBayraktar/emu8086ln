@@ -521,6 +521,8 @@
                                             <Button Content="DS:0" Margin="4,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="DS"/>
                                             <Button Content="SS:SP" Margin="4,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="SS"/>
                                             <Button Content="B800:0" Margin="4,0,0,0" Padding="8,3" Click="OnMemoryPresetClick" Tag="VIDEO"/>
+                                        <CheckBox x:Name="MemoryListToggle" Content="{svc:Tr memory.list}" Margin="12,0,0,0" VerticalAlignment="Center"
+                                                  ToolTip="{svc:Tr memory.listHint}" Click="OnMemoryListClick"/>
                                         </StackPanel>
                                         <ScrollBar DockPanel.Dock="Right" x:Name="MemoryScroll" Orientation="Vertical" Minimum="0" Maximum="65520"
                                                    SmallChange="16" LargeChange="256" Value="{Binding Offset, ElementName=Hex, Mode=TwoWay}"/>

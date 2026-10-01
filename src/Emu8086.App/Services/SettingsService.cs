@@ -37,6 +37,8 @@ public sealed class AppSettings
     public int AutoSaveIntervalSeconds { get; set; } = 30;
     /// <summary>Mirror ports without a built-in device to the shared emu8086.io file.</summary>
     public bool ExternalIo { get; set; }
+    /// <summary>Memory panel: one address per row instead of 16 bytes per row.</summary>
+    public bool MemoryListView { get; set; } = true;
     /// <summary>Delay between instructions in milliseconds; 0 runs at full speed.</summary>
     public int StepDelayMs { get; set; } = 0;
     public bool FirstRunDone { get; set; }

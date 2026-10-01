@@ -301,6 +301,12 @@ public partial class MainWindow : Window, IDialogService
         return true;
     }
 
+    private void OnMemoryListClick(object sender, RoutedEventArgs e)
+    {
+        SettingsService.Current.MemoryListView = MemoryListToggle.IsChecked == true;
+        Hex.ListMode = SettingsService.Current.MemoryListView;
+    }
+
     private void OnMemoryPresetClick(object sender, RoutedEventArgs e)
     {
         var cpu = _vm.Session.Machine.Cpu;
@@ -343,6 +349,8 @@ public partial class MainWindow : Window, IDialogService
     {
         var s = SettingsService.Current;
         FontSize = s.UiFontSize;
+        MemoryListToggle.IsChecked = s.MemoryListView;
+        Hex.ListMode = s.MemoryListView;
         var memoryMap = _layout.Panel("MemoryMap");
         if (s.MemoryMap && memoryMap.IsHidden) memoryMap.Show();
         else if (!s.MemoryMap && !memoryMap.IsHidden) memoryMap.Hide();

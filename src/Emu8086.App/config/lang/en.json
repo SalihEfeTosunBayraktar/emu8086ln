@@ -415,5 +415,7 @@
   "confirm.deleteFile": "Move {0} to the Recycle Bin?",
   "confirm.deleteProject": "Move the project {0} and its whole folder to the Recycle Bin?\n{1}",
   "delete.mainFile": "This is the project's main file. Set another file as main first, or delete the project.",
-  "output.deleted": "{0} was moved to the Recycle Bin."
+  "output.deleted": "{0} was moved to the Recycle Bin.",
+  "memory.list": "List",
+  "memory.listHint": "One address per row (hex, decimal, binary, character). Uncheck for 16 bytes per row."
 }

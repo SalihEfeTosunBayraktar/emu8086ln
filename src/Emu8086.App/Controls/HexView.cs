@@ -46,7 +46,25 @@ public sealed class HexView : FrameworkElement
 
     public static readonly DependencyProperty OffsetProperty = DependencyProperty.Register(nameof(Offset), typeof(int), typeof(HexView),
         new FrameworkPropertyMetadata(0x0100, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, (d, _) => ((HexView)d).ForceRefresh(),
-            (_, v) => Math.Clamp((int)v & ~(BytesPerRow - 1), 0, 0x10000 - BytesPerRow)));
+            (d, v) => ((HexView)d).CoerceOffset((int)v)));
+
+    public static readonly DependencyProperty ListModeProperty = DependencyProperty.Register(nameof(ListMode), typeof(bool), typeof(HexView),
+        new FrameworkPropertyMetadata(false, (d, _) =>
+        {
+            d.CoerceValue(OffsetProperty);
+            ((HexView)d).ForceRefresh();
+        }));
+
+    /// <summary>One byte per row (address, hex, decimal, binary, character) instead of 16 per row.</summary>
+    public bool ListMode
+    {
+        get => (bool)GetValue(ListModeProperty);
+        set => SetValue(ListModeProperty, value);
+    }
+
+    private int RowBytes => ListMode ? 1 : BytesPerRow;
+
+    private int CoerceOffset(int value) => Math.Clamp(value & ~(RowBytes - 1), 0, 0x10000 - RowBytes);
 
     public int Segment
     {
@@ -54,7 +72,7 @@ public sealed class HexView : FrameworkElement
         set => SetValue(SegmentProperty, value);
     }
 
-    /// <summary>Offset of the first visible row (multiple of 16).</summary>
+    /// <summary>Offset of the first visible row (multiple of 16 in grid mode).</summary>
     public int Offset
     {
         get => (int)GetValue(OffsetProperty);
@@ -74,7 +92,7 @@ public sealed class HexView : FrameworkElement
         var session = Session;
         if (session == null || !IsVisible) return;
         _rows = VisibleRows;
-        int length = _rows * BytesPerRow;
+        int length = _rows * RowBytes;
         lock (session.Sync)
         {
             var memory = session.Machine.Memory;
@@ -120,6 +138,12 @@ public sealed class HexView : FrameworkElement
             new(s, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, _typeface, FontSize, b, dpi);
         _charWidth = Text("0", normal).WidthIncludingTrailingWhitespace;
 
+        if (ListMode)
+        {
+            RenderList(dc, Text, normal, muted, changed, selection, mark);
+            return;
+        }
+
         // Column header: the low digit to add to the row address, e.g. row 0100 + column 5 = 0105.
         for (int i = 0; i < BytesPerRow; i++)
         {
@@ -156,13 +180,49 @@ public sealed class HexView : FrameworkElement
         }
     }
 
+    /// <summary>
+    /// One address per row. Addresses between the 16-byte boundaries are indented, so the
+    /// boundaries (0100, 0110, ...) stand out like headings.
+    /// </summary>
+    private void RenderList(DrawingContext dc, Func<string, Brush, FormattedText> text,
+        Brush normal, Brush muted, Brush changed, Brush selection, Brush mark)
+    {
+        for (int row = 0; row < _rows && row < _data.Length; row++)
+        {
+            double y = HeaderHeight + row * LineHeight + 2;
+            int offset = (Offset + row) & 0xFFFF;
+            byte b = _data[row];
+            bool boundary = offset % BytesPerRow == 0;
+            int physical = Emu8086.Core.Cpu.Memory.Physical((ushort)Segment, (ushort)offset);
+            bool isProgram = physical >= _programStart && physical < _programStart + _programLength;
+            var value = isProgram ? changed : normal;
+            double width = _charWidth * ListColumns;
+
+            if (row == _selected) dc.DrawRoundedRectangle(selection, null, new Rect(LeftPadding - 2, y - 1, width, LineHeight - 2), 3, 3);
+            if (_changed.Contains(physical)) dc.DrawRoundedRectangle(mark, null, new Rect(ListX(ListHexColumn) - 2, y - 1, _charWidth * 26, LineHeight - 2), 3, 3);
+
+            dc.DrawText(text($"{Segment:X4}:{offset:X4}", boundary ? normal : muted), new Point(ListX(boundary ? 0 : ListIndent), y));
+            dc.DrawText(text(b.ToString("X2"), value), new Point(ListX(ListHexColumn), y));
+            dc.DrawText(text(b.ToString().PadLeft(3), value), new Point(ListX(ListHexColumn + 5), y));
+            dc.DrawText(text(Convert.ToString(b, 2).PadLeft(8, '0'), value), new Point(ListX(ListHexColumn + 11), y));
+            char c = b is >= 32 and < 127 ? (char)b : '.';
+            dc.DrawText(text(c.ToString(), isProgram ? changed : muted), new Point(ListX(ListHexColumn + 22), y));
+        }
+    }
+
+    private const int ListIndent = 2;
+    private const int ListHexColumn = 14;
+    private const int ListColumns = 40;
+
+    private double ListX(int column) => LeftPadding + _charWidth * column;
+
     private double HexColumnX(int i) => LeftPadding + _charWidth * (11 + i * 3 + (i >= 8 ? 1 : 0));
     private double AsciiColumnX(int i) => LeftPadding + _charWidth * (11 + BytesPerRow * 3 + 2 + i);
 
     protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
         base.OnMouseWheel(e);
-        Offset -= Math.Sign(e.Delta) * 3 * BytesPerRow;
+        Offset -= Math.Sign(e.Delta) * 3 * RowBytes;
         e.Handled = true;
     }
 
@@ -175,7 +235,8 @@ public sealed class HexView : FrameworkElement
         if (p.Y < HeaderHeight) row = -1;
         _selected = -1;
         _pendingNibble = -1;
-        for (int i = 0; i < BytesPerRow && _charWidth > 0; i++)
+        if (ListMode && row >= 0 && row < _data.Length) _selected = row;
+        for (int i = 0; i < BytesPerRow && _charWidth > 0 && !ListMode; i++)
         {
             double x = HexColumnX(i);
             if (row >= 0 && p.X >= x - 2 && p.X <= x + _charWidth * 2 + 2) _selected = row * BytesPerRow + i;
@@ -188,10 +249,10 @@ public sealed class HexView : FrameworkElement
         base.OnKeyDown(e);
         switch (e.Key)
         {
-            case Key.PageDown: Offset += VisibleRows * BytesPerRow; e.Handled = true; return;
-            case Key.PageUp: Offset -= VisibleRows * BytesPerRow; e.Handled = true; return;
-            case Key.Down: Offset += BytesPerRow; e.Handled = true; return;
-            case Key.Up: Offset -= BytesPerRow; e.Handled = true; return;
+            case Key.PageDown: Offset += VisibleRows * RowBytes; e.Handled = true; return;
+            case Key.PageUp: Offset -= VisibleRows * RowBytes; e.Handled = true; return;
+            case Key.Down: Offset += RowBytes; e.Handled = true; return;
+            case Key.Up: Offset -= RowBytes; e.Handled = true; return;
         }
         int digit = e.Key switch
         {
