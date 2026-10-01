@@ -17,6 +17,8 @@ public sealed class HexView : FrameworkElement
     private const double FontSize = 12.5;
     private const double LineHeight = 18;
     private const double LeftPadding = 8;
+    /// <summary>Height of the column header (+0 .. +F) above the rows.</summary>
+    private const double HeaderHeight = LineHeight + 2;
 
     private byte[] _data = [];
     private int _programStart;
@@ -59,7 +61,7 @@ public sealed class HexView : FrameworkElement
         set => SetValue(OffsetProperty, value);
     }
 
-    public int VisibleRows => Math.Max(1, (int)(ActualHeight / LineHeight));
+    public int VisibleRows => Math.Max(1, (int)((ActualHeight - HeaderHeight) / LineHeight));
 
     private void ForceRefresh()
     {
@@ -118,9 +120,18 @@ public sealed class HexView : FrameworkElement
             new(s, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, _typeface, FontSize, b, dpi);
         _charWidth = Text("0", normal).WidthIncludingTrailingWhitespace;
 
+        // Column header: the low digit to add to the row address, e.g. row 0100 + column 5 = 0105.
+        for (int i = 0; i < BytesPerRow; i++)
+        {
+            bool selectedColumn = _selected >= 0 && _selected % BytesPerRow == i;
+            dc.DrawText(Text($"+{i:X}", selectedColumn ? normal : muted), new Point(HexColumnX(i), 2));
+        }
+        if (_selected >= 0)
+            dc.DrawText(Text($"{Segment:X4}:{(Offset + _selected) & 0xFFFF:X4}", normal), new Point(AsciiColumnX(0), 2));
+
         for (int row = 0; row < _rows && row * BytesPerRow < _data.Length; row++)
         {
-            double y = row * LineHeight + 2;
+            double y = HeaderHeight + row * LineHeight + 2;
             int rowOffset = Offset + row * BytesPerRow;
             dc.DrawText(Text($"{Segment:X4}:{rowOffset:X4}", muted), new Point(LeftPadding, y));
 
@@ -160,13 +171,14 @@ public sealed class HexView : FrameworkElement
         base.OnMouseDown(e);
         Focus();
         var p = e.GetPosition(this);
-        int row = (int)((p.Y - 2) / LineHeight);
+        int row = (int)((p.Y - HeaderHeight - 2) / LineHeight);
+        if (p.Y < HeaderHeight) row = -1;
         _selected = -1;
         _pendingNibble = -1;
         for (int i = 0; i < BytesPerRow && _charWidth > 0; i++)
         {
             double x = HexColumnX(i);
-            if (p.X >= x - 2 && p.X <= x + _charWidth * 2 + 2) _selected = row * BytesPerRow + i;
+            if (row >= 0 && p.X >= x - 2 && p.X <= x + _charWidth * 2 + 2) _selected = row * BytesPerRow + i;
         }
         InvalidateVisual();
     }
