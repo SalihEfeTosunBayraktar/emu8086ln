@@ -524,6 +524,13 @@
                                         <CheckBox x:Name="MemoryListToggle" Content="{svc:Tr memory.list}" Margin="12,0,0,0" VerticalAlignment="Center"
                                                   ToolTip="{svc:Tr memory.listHint}" Click="OnMemoryListClick"/>
                                         </StackPanel>
+                                        <StackPanel DockPanel.Dock="Top" x:Name="MemoryColumnsBar" Orientation="Horizontal" Margin="8,0,8,4">
+                                            <TextBlock Text="{svc:Tr memory.columns}" VerticalAlignment="Center" Foreground="{DynamicResource Fg.Secondary}"/>
+                                            <CheckBox Content="{svc:Tr memory.col.hex}" Tag="1" Margin="10,0,0,0" Click="OnMemoryColumnClick"/>
+                                            <CheckBox Content="{svc:Tr memory.col.decimal}" Tag="2" Margin="10,0,0,0" Click="OnMemoryColumnClick"/>
+                                            <CheckBox Content="{svc:Tr memory.col.binary}" Tag="4" Margin="10,0,0,0" Click="OnMemoryColumnClick"/>
+                                            <CheckBox Content="{svc:Tr memory.col.char}" Tag="8" Margin="10,0,0,0" Click="OnMemoryColumnClick"/>
+                                        </StackPanel>
                                         <ScrollBar DockPanel.Dock="Right" x:Name="MemoryScroll" Orientation="Vertical" Minimum="0" Maximum="65520"
                                                    SmallChange="16" LargeChange="256" Value="{Binding Offset, ElementName=Hex, Mode=TwoWay}"/>
                                         <ctl:HexView x:Name="Hex"/>

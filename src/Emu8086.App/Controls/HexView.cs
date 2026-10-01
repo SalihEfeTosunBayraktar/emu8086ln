@@ -6,6 +6,18 @@ using Emu8086.App.Services;
 
 namespace Emu8086.App.Controls;
 
+/// <summary>Value columns of the memory list view.</summary>
+[Flags]
+public enum MemoryColumns
+{
+    None = 0,
+    Hex = 1,
+    Decimal = 2,
+    Binary = 4,
+    Char = 8,
+    All = Hex | Decimal | Binary | Char,
+}
+
 /// <summary>
 /// Hex/ASCII dump of one 64 KB segment. The loaded program's bytes are coloured, the instruction
 /// about to run is boxed and bytes (and bits) written by the last instruction get a background mark;
@@ -197,19 +209,28 @@ public sealed class HexView : FrameworkElement
 
     /// <summary>
     /// One address per row. Addresses between the 16-byte boundaries are indented, so the
-    /// boundaries (0100, 0110, ...) stand out like headings.
+    /// boundaries (0100, 0110, ...) stand out like headings. Only the chosen value columns are drawn.
     /// </summary>
     private void RenderList(DrawingContext dc, Func<string, Brush, FormattedText> text,
         Brush normal, Brush muted, Brush changed, Brush selection, Brush mark, Pen box)
     {
-        int firstExecRow = -1, lastExecRow = -1;
-        // Column titles: every row shows the same byte four ways.
+        // Lay the visible columns out left to right.
+        var columns = new List<(MemoryColumns Kind, int X)>();
+        int next = ListValueColumn;
+        foreach (var (kind, _, width) in ListColumnSpecs)
+        {
+            if (!Columns.HasFlag(kind)) continue;
+            columns.Add((kind, next));
+            next += width + ListColumnGap;
+        }
+        double rowWidth = _charWidth * next;
+
         var loc = Loc.Instance;
         dc.DrawText(text(loc["memory.col.address"], muted), new Point(ListX(0), 2));
-        dc.DrawText(text(loc["memory.col.hex"], muted), new Point(ListX(ListHexColumn), 2));
-        dc.DrawText(text(loc["memory.col.decimal"], muted), new Point(ListX(ListHexColumn + 5), 2));
-        dc.DrawText(text(loc["memory.col.binary"], muted), new Point(ListX(ListHexColumn + 11), 2));
-        dc.DrawText(text(loc["memory.col.char"], muted), new Point(ListX(ListHexColumn + 22), 2));
+        foreach (var (kind, x) in columns)
+            dc.DrawText(text(loc[ListColumnSpecs.First(c => c.Kind == kind).TitleKey], muted), new Point(ListX(x), 2));
+
+        int firstExecRow = -1, lastExecRow = -1;
         for (int row = 0; row < _rows && row < _data.Length; row++)
         {
             double y = HeaderHeight + row * LineHeight + 2;
@@ -219,41 +240,72 @@ public sealed class HexView : FrameworkElement
             int physical = Emu8086.Core.Cpu.Memory.Physical((ushort)Segment, (ushort)offset);
             bool isProgram = physical >= _programStart && physical < _programStart + _programLength;
             var value = isProgram ? changed : normal;
-            double width = _charWidth * ListColumns;
+            bool wasChanged = _changed.TryGetValue(physical, out byte old);
 
-            if (row == _selected) dc.DrawRoundedRectangle(selection, null, new Rect(LeftPadding - 2, y - 1, width, LineHeight - 2), 3, 3);
+            if (row == _selected) dc.DrawRoundedRectangle(selection, null, new Rect(LeftPadding - 2, y - 1, rowWidth, LineHeight - 2), 3, 3);
             if (IsExecuting(physical))
             {
                 if (firstExecRow < 0) firstExecRow = row;
                 lastExecRow = row;
             }
-            if (_changed.TryGetValue(physical, out byte old))
-            {
-                dc.DrawRoundedRectangle(mark, null, new Rect(ListX(ListHexColumn) - 2, y - 1, _charWidth * 2 + 4, LineHeight - 2), 3, 3);
-                // Mark exactly the bits that flipped.
-                for (int bit = 0; bit < 8; bit++)
-                    if ((((old ^ b) >> (7 - bit)) & 1) != 0)
-                        dc.DrawRectangle(mark, null, new Rect(ListX(ListHexColumn + 11 + bit), y - 1, _charWidth, LineHeight - 2));
-            }
-
             dc.DrawText(text($"{Segment:X4}:{offset:X4}", boundary ? normal : muted), new Point(ListX(boundary ? 0 : ListIndent), y));
-            dc.DrawText(text(b.ToString("X2"), value), new Point(ListX(ListHexColumn), y));
-            dc.DrawText(text(b.ToString().PadLeft(3), value), new Point(ListX(ListHexColumn + 5), y));
-            dc.DrawText(text(Convert.ToString(b, 2).PadLeft(8, '0'), value), new Point(ListX(ListHexColumn + 11), y));
-            char c = b is >= 32 and < 127 ? (char)b : '.';
-            dc.DrawText(text(c.ToString(), isProgram ? changed : muted), new Point(ListX(ListHexColumn + 22), y));
+
+            foreach (var (kind, x) in columns)
+            {
+                string cell = kind switch
+                {
+                    MemoryColumns.Hex => b.ToString("X2"),
+                    MemoryColumns.Decimal => b.ToString().PadLeft(3),
+                    MemoryColumns.Binary => Convert.ToString(b, 2).PadLeft(8, '0'),
+                    _ => (b is >= 32 and < 127 ? (char)b : '.').ToString(),
+                };
+                if (wasChanged && kind == MemoryColumns.Binary)
+                {
+                    // Mark exactly the bits that flipped.
+                    for (int bit = 0; bit < 8; bit++)
+                        if ((((old ^ b) >> (7 - bit)) & 1) != 0)
+                            dc.DrawRectangle(mark, null, new Rect(ListX(x + bit), y - 1, _charWidth, LineHeight - 2));
+                }
+                else if (wasChanged)
+                {
+                    dc.DrawRoundedRectangle(mark, null, new Rect(ListX(x) - 2, y - 1, _charWidth * cell.Length + 4, LineHeight - 2), 3, 3);
+                }
+                dc.DrawText(text(cell, kind == MemoryColumns.Char && !isProgram ? muted : value), new Point(ListX(x), y));
+            }
         }
         // One box around all rows of the instruction that runs next.
         if (firstExecRow >= 0)
             dc.DrawRectangle(null, box, new Rect(LeftPadding - 3, HeaderHeight + firstExecRow * LineHeight + 1,
-                _charWidth * ListColumns, (lastExecRow - firstExecRow + 1) * LineHeight));
+                rowWidth, (lastExecRow - firstExecRow + 1) * LineHeight));
     }
 
     private bool IsExecuting(int physical) => _execStart >= 0 && physical >= _execStart && physical < _execStart + _execLength;
 
     private const int ListIndent = 2;
-    private const int ListHexColumn = 14;
-    private const int ListColumns = 40;
+    private const int ListValueColumn = 14;
+    private const int ListColumnGap = 3;
+
+    /// <summary>Value columns of the list view in display order, with their title key and width in characters.</summary>
+    private static readonly (MemoryColumns Kind, string TitleKey, int Width)[] ListColumnSpecs =
+    [
+        (MemoryColumns.Hex, "memory.col.hex", 3),
+        (MemoryColumns.Decimal, "memory.col.decimal", 3),
+        (MemoryColumns.Binary, "memory.col.binary", 8),
+        (MemoryColumns.Char, "memory.col.char", 3),
+    ];
+
+    private MemoryColumns _columns = MemoryColumns.All;
+
+    /// <summary>Which value columns the list view shows.</summary>
+    public MemoryColumns Columns
+    {
+        get => _columns;
+        set
+        {
+            _columns = value;
+            InvalidateVisual();
+        }
+    }
 
     private double ListX(int column) => LeftPadding + _charWidth * column;
 

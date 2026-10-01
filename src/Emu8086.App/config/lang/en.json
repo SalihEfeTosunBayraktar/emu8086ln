@@ -422,5 +422,6 @@
   "memory.col.hex": "Hex",
   "memory.col.decimal": "Dec",
   "memory.col.binary": "Binary",
-  "memory.col.char": "Char"
+  "memory.col.char": "Char",
+  "memory.columns": "Show:"
 }

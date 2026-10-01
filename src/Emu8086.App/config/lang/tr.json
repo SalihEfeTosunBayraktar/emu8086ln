@@ -422,5 +422,6 @@
   "memory.col.hex": "Hex",
   "memory.col.decimal": "Ond",
   "memory.col.binary": "İkilik",
-  "memory.col.char": "Krk"
+  "memory.col.char": "Krk",
+  "memory.columns": "Göster:"
 }

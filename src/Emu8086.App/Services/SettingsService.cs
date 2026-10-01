@@ -39,6 +39,8 @@ public sealed class AppSettings
     public bool ExternalIo { get; set; }
     /// <summary>Memory panel: one address per row instead of 16 bytes per row.</summary>
     public bool MemoryListView { get; set; } = true;
+    /// <summary>Value columns shown in the memory list view (flags of MemoryColumns).</summary>
+    public int MemoryColumns { get; set; } = (int)Emu8086.App.Controls.MemoryColumns.All;
     /// <summary>Delay between instructions in milliseconds; 0 runs at full speed.</summary>
     public int StepDelayMs { get; set; } = 0;
     public bool FirstRunDone { get; set; }

@@ -305,6 +305,26 @@ public partial class MainWindow : Window, IDialogService
     {
         SettingsService.Current.MemoryListView = MemoryListToggle.IsChecked == true;
         Hex.ListMode = SettingsService.Current.MemoryListView;
+        ApplyMemoryColumns();
+    }
+
+    /// <summary>The column check boxes only apply to the list view.</summary>
+    private void ApplyMemoryColumns()
+    {
+        var s = SettingsService.Current;
+        Hex.Columns = (MemoryColumns)s.MemoryColumns;
+        MemoryColumnsBar.Visibility = s.MemoryListView ? Visibility.Visible : Visibility.Collapsed;
+        foreach (var box in MemoryColumnsBar.Children.OfType<CheckBox>())
+            box.IsChecked = (s.MemoryColumns & int.Parse((string)box.Tag)) != 0;
+    }
+
+    private void OnMemoryColumnClick(object sender, RoutedEventArgs e)
+    {
+        var box = (CheckBox)sender;
+        int flag = int.Parse((string)box.Tag);
+        var s = SettingsService.Current;
+        s.MemoryColumns = box.IsChecked == true ? s.MemoryColumns | flag : s.MemoryColumns & ~flag;
+        ApplyMemoryColumns();
     }
 
     private void OnMemoryPresetClick(object sender, RoutedEventArgs e)
@@ -351,6 +371,7 @@ public partial class MainWindow : Window, IDialogService
         FontSize = s.UiFontSize;
         MemoryListToggle.IsChecked = s.MemoryListView;
         Hex.ListMode = s.MemoryListView;
+        ApplyMemoryColumns();
         var memoryMap = _layout.Panel("MemoryMap");
         if (s.MemoryMap && memoryMap.IsHidden) memoryMap.Show();
         else if (!s.MemoryMap && !memoryMap.IsHidden) memoryMap.Hide();

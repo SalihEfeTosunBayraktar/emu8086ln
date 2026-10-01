@@ -422,5 +422,6 @@
   "memory.col.hex": "Hex",
   "memory.col.decimal": "Dez",
   "memory.col.binary": "Binär",
-  "memory.col.char": "Zch"
+  "memory.col.char": "Zch",
+  "memory.columns": "Anzeigen:"
 }
