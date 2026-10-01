@@ -417,5 +417,10 @@
   "delete.mainFile": "This is the project's main file. Set another file as main first, or delete the project.",
   "output.deleted": "{0} was moved to the Recycle Bin.",
   "memory.list": "List",
-  "memory.listHint": "One address per row (hex, decimal, binary, character). Uncheck for 16 bytes per row."
+  "memory.listHint": "One address per row (hex, decimal, binary, character). Uncheck for 16 bytes per row.",
+  "memory.col.address": "Address",
+  "memory.col.hex": "Hex",
+  "memory.col.decimal": "Dec",
+  "memory.col.binary": "Binary",
+  "memory.col.char": "Char"
 }

@@ -7,8 +7,8 @@ using Emu8086.App.Services;
 namespace Emu8086.App.Controls;
 
 /// <summary>
-/// Hex/ASCII dump of one 64 KB segment. The loaded program's bytes are coloured and bytes written
-/// by the last executed instruction get a background mark;
+/// Hex/ASCII dump of one 64 KB segment. The loaded program's bytes are coloured, the instruction
+/// about to run is boxed and bytes (and bits) written by the last instruction get a background mark;
 /// click a byte and type hex digits to edit it while the program is paused.
 /// </summary>
 public sealed class HexView : FrameworkElement
@@ -23,7 +23,11 @@ public sealed class HexView : FrameworkElement
     private byte[] _data = [];
     private int _programStart;
     private int _programLength;
-    private HashSet<int> _changed = new();
+    /// <summary>Physical address -> value before the last instruction, for bytes it changed.</summary>
+    private Dictionary<int, byte> _changed = new();
+    private int _execStart = -1;
+    private int _execLength;
+    private int _lastExecStart = -1;
     private object? _lastRecord;
     private int _rows;
     private int _selected = -1;
@@ -97,7 +101,12 @@ public sealed class HexView : FrameworkElement
         {
             var memory = session.Machine.Memory;
             var record = session.Machine.History.Last;
-            if (memory.Version == _lastVersion && _data.Length == length && ReferenceEquals(record, _lastRecord)) return;
+            var cpu = session.Machine.Cpu;
+            int execStart = session.State == SessionState.Empty ? -1 : Emu8086.Core.Cpu.Memory.Physical(cpu.CS, cpu.IP);
+            if (memory.Version == _lastVersion && _data.Length == length && ReferenceEquals(record, _lastRecord) && execStart == _lastExecStart) return;
+            _lastExecStart = execStart;
+            _execStart = execStart;
+            _execLength = execStart < 0 ? 0 : new Emu8086.Core.Disassembler.Disassembler8086(memory).Decode(cpu.CS, cpu.IP).Bytes.Length;
             _lastVersion = memory.Version;
             _lastRecord = record;
             var data = new byte[length];
@@ -106,7 +115,11 @@ public sealed class HexView : FrameworkElement
             _programStart = session.Machine.ProgramStart;
             _programLength = session.Machine.Program?.Bytes.Length ?? 0;
             // Physical addresses whose value the last instruction really changed.
-            _changed = record == null ? new() : record.MemoryWrites.Where(w => w.OldValue != w.NewValue).Select(w => w.Address).ToHashSet();
+            _changed = new();
+            // A byte may be written twice by one instruction; the first old value is the one before it.
+            foreach (var w in record?.MemoryWrites ?? [])
+                if (!_changed.ContainsKey(w.Address)) _changed[w.Address] = w.OldValue;
+            foreach (var same in _changed.Where(c => memory.Peek(c.Key) == c.Value).Select(c => c.Key).ToList()) _changed.Remove(same);
         }
         InvalidateVisual();
     }
@@ -133,6 +146,7 @@ public sealed class HexView : FrameworkElement
         var changed = Res("Changed");
         var selection = Res("Bg.Selected");
         var mark = Res("ChangedMark");
+        var box = new Pen(Res("ExecLine.Border"), 1.5);
 
         FormattedText Text(string s, Brush b) =>
             new(s, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, _typeface, FontSize, b, dpi);
@@ -140,7 +154,7 @@ public sealed class HexView : FrameworkElement
 
         if (ListMode)
         {
-            RenderList(dc, Text, normal, muted, changed, selection, mark);
+            RenderList(dc, Text, normal, muted, changed, selection, mark, box);
             return;
         }
 
@@ -168,7 +182,8 @@ public sealed class HexView : FrameworkElement
                     dc.DrawRoundedRectangle(selection, null, new Rect(x - 2, y - 1, _charWidth * 2 + 4, LineHeight - 2), 3, 3);
                 int physical = Emu8086.Core.Cpu.Memory.Physical((ushort)Segment, (ushort)(rowOffset + i));
                 bool isProgram = physical >= _programStart && physical < _programStart + _programLength;
-                if (_changed.Contains(physical))
+                if (IsExecuting(physical)) dc.DrawRectangle(null, box, new Rect(x - 2, y - 1, _charWidth * 2 + 4, LineHeight - 2));
+                if (_changed.ContainsKey(physical))
                 {
                     dc.DrawRoundedRectangle(mark, null, new Rect(x - 2, y - 1, _charWidth * 2 + 4, LineHeight - 2), 3, 3);
                     dc.DrawRoundedRectangle(mark, null, new Rect(AsciiColumnX(i), y - 1, _charWidth, LineHeight - 2), 2, 2);
@@ -185,8 +200,16 @@ public sealed class HexView : FrameworkElement
     /// boundaries (0100, 0110, ...) stand out like headings.
     /// </summary>
     private void RenderList(DrawingContext dc, Func<string, Brush, FormattedText> text,
-        Brush normal, Brush muted, Brush changed, Brush selection, Brush mark)
+        Brush normal, Brush muted, Brush changed, Brush selection, Brush mark, Pen box)
     {
+        int firstExecRow = -1, lastExecRow = -1;
+        // Column titles: every row shows the same byte four ways.
+        var loc = Loc.Instance;
+        dc.DrawText(text(loc["memory.col.address"], muted), new Point(ListX(0), 2));
+        dc.DrawText(text(loc["memory.col.hex"], muted), new Point(ListX(ListHexColumn), 2));
+        dc.DrawText(text(loc["memory.col.decimal"], muted), new Point(ListX(ListHexColumn + 5), 2));
+        dc.DrawText(text(loc["memory.col.binary"], muted), new Point(ListX(ListHexColumn + 11), 2));
+        dc.DrawText(text(loc["memory.col.char"], muted), new Point(ListX(ListHexColumn + 22), 2));
         for (int row = 0; row < _rows && row < _data.Length; row++)
         {
             double y = HeaderHeight + row * LineHeight + 2;
@@ -199,7 +222,19 @@ public sealed class HexView : FrameworkElement
             double width = _charWidth * ListColumns;
 
             if (row == _selected) dc.DrawRoundedRectangle(selection, null, new Rect(LeftPadding - 2, y - 1, width, LineHeight - 2), 3, 3);
-            if (_changed.Contains(physical)) dc.DrawRoundedRectangle(mark, null, new Rect(ListX(ListHexColumn) - 2, y - 1, _charWidth * 26, LineHeight - 2), 3, 3);
+            if (IsExecuting(physical))
+            {
+                if (firstExecRow < 0) firstExecRow = row;
+                lastExecRow = row;
+            }
+            if (_changed.TryGetValue(physical, out byte old))
+            {
+                dc.DrawRoundedRectangle(mark, null, new Rect(ListX(ListHexColumn) - 2, y - 1, _charWidth * 2 + 4, LineHeight - 2), 3, 3);
+                // Mark exactly the bits that flipped.
+                for (int bit = 0; bit < 8; bit++)
+                    if ((((old ^ b) >> (7 - bit)) & 1) != 0)
+                        dc.DrawRectangle(mark, null, new Rect(ListX(ListHexColumn + 11 + bit), y - 1, _charWidth, LineHeight - 2));
+            }
 
             dc.DrawText(text($"{Segment:X4}:{offset:X4}", boundary ? normal : muted), new Point(ListX(boundary ? 0 : ListIndent), y));
             dc.DrawText(text(b.ToString("X2"), value), new Point(ListX(ListHexColumn), y));
@@ -208,7 +243,13 @@ public sealed class HexView : FrameworkElement
             char c = b is >= 32 and < 127 ? (char)b : '.';
             dc.DrawText(text(c.ToString(), isProgram ? changed : muted), new Point(ListX(ListHexColumn + 22), y));
         }
+        // One box around all rows of the instruction that runs next.
+        if (firstExecRow >= 0)
+            dc.DrawRectangle(null, box, new Rect(LeftPadding - 3, HeaderHeight + firstExecRow * LineHeight + 1,
+                _charWidth * ListColumns, (lastExecRow - firstExecRow + 1) * LineHeight));
     }
+
+    private bool IsExecuting(int physical) => _execStart >= 0 && physical >= _execStart && physical < _execStart + _execLength;
 
     private const int ListIndent = 2;
     private const int ListHexColumn = 14;

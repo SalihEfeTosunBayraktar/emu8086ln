@@ -417,5 +417,10 @@
   "delete.mainFile": "Bu, projenin ana dosyası. Önce başka bir dosyayı ana dosya yap ya da projeyi sil.",
   "output.deleted": "{0} Geri Dönüşüm Kutusu'na taşındı.",
   "memory.list": "Liste",
-  "memory.listHint": "Her satırda tek adres (onaltılık, ondalık, ikilik, karakter). Satır başına 16 bayt için işareti kaldır."
+  "memory.listHint": "Her satırda tek adres (onaltılık, ondalık, ikilik, karakter). Satır başına 16 bayt için işareti kaldır.",
+  "memory.col.address": "Adres",
+  "memory.col.hex": "Hex",
+  "memory.col.decimal": "Ond",
+  "memory.col.binary": "İkilik",
+  "memory.col.char": "Krk"
 }
