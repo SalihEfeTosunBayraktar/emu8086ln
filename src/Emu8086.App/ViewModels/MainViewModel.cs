@@ -60,6 +60,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SaveAllCommand = new RelayCommand(() => SaveAll());
         CloseDocumentCommand = new RelayCommand(p => CloseDocument(p as DocumentViewModel ?? SelectedDocument));
         OpenProjectFileCommand = new RelayCommand(p => { if (p is ProjectFileItem f) OpenDocument(f.Path); });
+        DeleteFileCommand = new RelayCommand(p => DeleteFile(p as ProjectFileItem), p => Project != null && p is ProjectFileItem);
+        DeleteProjectCommand = new RelayCommand(DeleteProject, () => Project != null);
         SetMainFileCommand = new RelayCommand(p => SetMainFile(p as ProjectFileItem), p => Project != null && p is ProjectFileItem);
         OpenExampleCommand = new RelayCommand(p => { if (p is string path) OpenExample(path); });
         OpenRecentCommand = new RelayCommand(p => { if (p is string path) OpenProjectPath(path); });
@@ -131,6 +133,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ICommand CloseDocumentCommand { get; }
     public ICommand OpenProjectFileCommand { get; }
     public ICommand SetMainFileCommand { get; }
+    public ICommand DeleteFileCommand { get; }
+    public ICommand DeleteProjectCommand { get; }
     public ICommand OpenExampleCommand { get; }
     public ICommand OpenRecentCommand { get; }
     public ICommand BuildCommand { get; }

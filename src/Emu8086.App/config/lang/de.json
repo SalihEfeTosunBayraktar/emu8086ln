@@ -409,5 +409,11 @@
   "explain.generic": "Führt {0} aus.",
   "panel.editor": "Editor",
   "cmd.panels": "Bereiche",
-  "cmd.resetLayout": "Bereichslayout zurücksetzen"
+  "cmd.resetLayout": "Bereichslayout zurücksetzen",
+  "cmd.deleteFile": "Datei löschen",
+  "cmd.deleteProject": "Projekt löschen...",
+  "confirm.deleteFile": "{0} in den Papierkorb verschieben?",
+  "confirm.deleteProject": "Das Projekt {0} mit dem gesamten Ordner in den Papierkorb verschieben?\n{1}",
+  "delete.mainFile": "Dies ist die Hauptdatei des Projekts. Lege zuerst eine andere Hauptdatei fest oder lösche das Projekt.",
+  "output.deleted": "{0} wurde in den Papierkorb verschoben."
 }

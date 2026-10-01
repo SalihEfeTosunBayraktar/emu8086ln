@@ -409,5 +409,11 @@
   "explain.generic": "{0} komutunu çalıştırır.",
   "panel.editor": "Editör",
   "cmd.panels": "Paneller",
-  "cmd.resetLayout": "Panel yerleşimini sıfırla"
+  "cmd.resetLayout": "Panel yerleşimini sıfırla",
+  "cmd.deleteFile": "Dosyayı sil",
+  "cmd.deleteProject": "Projeyi sil...",
+  "confirm.deleteFile": "{0} Geri Dönüşüm Kutusu'na taşınsın mı?",
+  "confirm.deleteProject": "{0} projesi ve tüm klasörü Geri Dönüşüm Kutusu'na taşınsın mı?\n{1}",
+  "delete.mainFile": "Bu, projenin ana dosyası. Önce başka bir dosyayı ana dosya yap ya da projeyi sil.",
+  "output.deleted": "{0} Geri Dönüşüm Kutusu'na taşındı."
 }

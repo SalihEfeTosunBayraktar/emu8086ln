@@ -7,7 +7,8 @@ using Emu8086.App.Services;
 namespace Emu8086.App.Controls;
 
 /// <summary>
-/// Hex/ASCII dump of one 64 KB segment. Bytes written by the last executed instruction are marked;
+/// Hex/ASCII dump of one 64 KB segment. The loaded program's bytes are coloured and bytes written
+/// by the last executed instruction get a background mark;
 /// click a byte and type hex digits to edit it while the program is paused.
 /// </summary>
 public sealed class HexView : FrameworkElement
@@ -18,6 +19,8 @@ public sealed class HexView : FrameworkElement
     private const double LeftPadding = 8;
 
     private byte[] _data = [];
+    private int _programStart;
+    private int _programLength;
     private HashSet<int> _changed = new();
     private object? _lastRecord;
     private int _rows;
@@ -80,6 +83,8 @@ public sealed class HexView : FrameworkElement
             var data = new byte[length];
             for (int i = 0; i < length; i++) data[i] = memory.Read8((ushort)Segment, (ushort)(Offset + i));
             _data = data;
+            _programStart = session.Machine.ProgramStart;
+            _programLength = session.Machine.Program?.Bytes.Length ?? 0;
             // Physical addresses whose value the last instruction really changed.
             _changed = record == null ? new() : record.MemoryWrites.Where(w => w.OldValue != w.NewValue).Select(w => w.Address).ToHashSet();
         }
@@ -126,15 +131,16 @@ public sealed class HexView : FrameworkElement
                 double x = HexColumnX(i);
                 if (index == _selected)
                     dc.DrawRoundedRectangle(selection, null, new Rect(x - 2, y - 1, _charWidth * 2 + 4, LineHeight - 2), 3, 3);
-                bool isChanged = _changed.Contains(Emu8086.Core.Cpu.Memory.Physical((ushort)Segment, (ushort)(rowOffset + i)));
-                if (isChanged)
+                int physical = Emu8086.Core.Cpu.Memory.Physical((ushort)Segment, (ushort)(rowOffset + i));
+                bool isProgram = physical >= _programStart && physical < _programStart + _programLength;
+                if (_changed.Contains(physical))
                 {
                     dc.DrawRoundedRectangle(mark, null, new Rect(x - 2, y - 1, _charWidth * 2 + 4, LineHeight - 2), 3, 3);
                     dc.DrawRoundedRectangle(mark, null, new Rect(AsciiColumnX(i), y - 1, _charWidth, LineHeight - 2), 2, 2);
                 }
-                dc.DrawText(Text(b.ToString("X2"), isChanged ? changed : normal), new Point(x, y));
+                dc.DrawText(Text(b.ToString("X2"), isProgram ? changed : normal), new Point(x, y));
                 char c = b is >= 32 and < 127 ? (char)b : '.';
-                dc.DrawText(Text(c.ToString(), isChanged ? changed : muted), new Point(AsciiColumnX(i), y));
+                dc.DrawText(Text(c.ToString(), isProgram ? changed : muted), new Point(AsciiColumnX(i), y));
             }
         }
     }

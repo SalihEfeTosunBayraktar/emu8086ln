@@ -133,6 +133,7 @@
                         </MenuItem>
                         <MenuItem Header="{svc:Tr cmd.saveAll}" Command="{Binding SaveAllCommand}" InputGestureText="Ctrl+Shift+S"/>
                         <MenuItem Header="{svc:Tr cmd.closeFile}" Command="{Binding CloseDocumentCommand}" InputGestureText="Ctrl+F4"/>
+                        <MenuItem Header="{svc:Tr cmd.deleteProject}" Command="{Binding DeleteProjectCommand}"/>
                         <Separator/>
                         <MenuItem Header="{svc:Tr cmd.exportListing}" Command="{Binding ExportListingCommand}">
                             <MenuItem.Icon><Path Data="{StaticResource Icon.File}" Style="{StaticResource MenuIcon}"/></MenuItem.Icon>
@@ -334,6 +335,10 @@
                                                                       CommandParameter="{Binding}"/>
                                                             <MenuItem Header="{svc:Tr cmd.setMain}"
                                                                       Command="{Binding PlacementTarget.Tag.SetMainFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                                      CommandParameter="{Binding}"/>
+                                                            <Separator/>
+                                                            <MenuItem Header="{svc:Tr cmd.deleteFile}"
+                                                                      Command="{Binding PlacementTarget.Tag.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                                       CommandParameter="{Binding}"/>
                                                         </ContextMenu>
                                                     </StackPanel.ContextMenu>

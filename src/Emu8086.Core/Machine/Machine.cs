@@ -83,6 +83,9 @@ public sealed class Machine : IDisposable
     public ushort[] SegmentBases { get; private set; } = [];
     public ProgramImage? Program { get; private set; }
 
+    /// <summary>Physical address where the program image was loaded.</summary>
+    public int ProgramStart { get; private set; }
+
     public string PrinterText
     {
         get { lock (_printer) return _printer.ToString(); }
@@ -153,7 +156,8 @@ public sealed class Machine : IDisposable
     private void LoadFlat(ProgramImage image, ushort segment)
     {
         if (image.Format == OutputFormat.Com) WritePsp(segment);
-        Memory.Load(Memory.Physical(segment, (ushort)image.Origin), image.Bytes);
+        ProgramStart = Memory.Physical(segment, (ushort)image.Origin);
+        Memory.Load(ProgramStart, image.Bytes);
         Cpu.CS = Cpu.DS = Cpu.ES = Cpu.SS = segment;
         Cpu.IP = (ushort)image.EntryOffset;
         Cpu.SP = 0xFFFE;
@@ -165,7 +169,8 @@ public sealed class Machine : IDisposable
     {
         // With ORG 7C00h the code runs at 0000:7C00; otherwise at 07C0:0000 (same physical address).
         ushort segment = image.Origin == BootOffset ? BootSegment : (ushort)(BootOffset >> 4);
-        Memory.Load(Memory.Physical(segment, (ushort)image.Origin), image.Bytes);
+        ProgramStart = Memory.Physical(segment, (ushort)image.Origin);
+        Memory.Load(ProgramStart, image.Bytes);
         Cpu.CS = Cpu.DS = Cpu.ES = Cpu.SS = segment;
         Cpu.IP = (ushort)image.EntryOffset;
         Cpu.SP = image.Origin == BootOffset ? BootOffset : (ushort)0xFFFE;
@@ -177,7 +182,8 @@ public sealed class Machine : IDisposable
     {
         WritePsp(PspSegment);
         ushort load = ExeLoadSegment;
-        Memory.Load(Memory.Physical(load, 0), image.Bytes);
+        ProgramStart = Memory.Physical(load, 0);
+        Memory.Load(ProgramStart, image.Bytes);
         foreach (int r in image.Relocations)
         {
             int at = Memory.Physical(load, 0) + r;

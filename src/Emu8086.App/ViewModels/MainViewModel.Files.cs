@@ -1,5 +1,6 @@
 using System.IO;
 using Emu8086.App.Services;
+using Microsoft.VisualBasic.FileIO;
 
 namespace Emu8086.App.ViewModels;
 
@@ -105,6 +106,62 @@ public sealed partial class MainViewModel
         Project.MainFile = item.Name;
         ProjectService.Save(Project);
         RefreshProjectFiles();
+    }
+
+    /// <summary>Moves a project file to the Recycle Bin after confirmation.</summary>
+    private void DeleteFile(ProjectFileItem? item)
+    {
+        if (Project == null || item == null) return;
+        if (item.IsMain)
+        {
+            _dialogs.ShowMessage(Loc.Instance["delete.mainFile"]);
+            return;
+        }
+        if (_dialogs.Confirm(Loc.Instance.Format("confirm.deleteFile", item.Name)) != ConfirmResult.Yes) return;
+        try
+        {
+            FileSystem.DeleteFile(item.Path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or OperationCanceledException)
+        {
+            _dialogs.ShowMessage(e.Message);
+            return;
+        }
+        ForgetDocument(Documents.FirstOrDefault(d => string.Equals(d.FilePath, item.Path, StringComparison.OrdinalIgnoreCase)));
+        RefreshProjectFiles();
+        Log(Loc.Instance.Format("output.deleted", item.Name), OutputKind.Info);
+    }
+
+    /// <summary>Moves the whole project folder to the Recycle Bin after confirmation.</summary>
+    private void DeleteProject()
+    {
+        if (Project is not { } project) return;
+        if (_dialogs.Confirm(Loc.Instance.Format("confirm.deleteProject", project.Name, project.Directory)) != ConfirmResult.Yes) return;
+        Session.Stop();
+        try
+        {
+            FileSystem.DeleteDirectory(project.Directory, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or OperationCanceledException)
+        {
+            _dialogs.ShowMessage(e.Message);
+            return;
+        }
+        foreach (var doc in Documents.ToList()) ForgetDocument(doc);
+        Project = null;
+        SettingsService.Current.LastProject = null;
+        RefreshProjectFiles();
+        OnPropertyChanged(nameof(RecentProjects));
+        Log(Loc.Instance.Format("output.deleted", project.Name), OutputKind.Info);
+    }
+
+    /// <summary>Closes a document whose file no longer exists, without asking to save it.</summary>
+    private void ForgetDocument(DocumentViewModel? doc)
+    {
+        if (doc == null) return;
+        Documents.Remove(doc);
+        if (doc == _buildDocument) _buildDocument = null;
+        if (SelectedDocument == doc || SelectedDocument == null) SelectedDocument = Documents.FirstOrDefault();
     }
 
     private void OpenFile()
