@@ -161,6 +161,7 @@ public sealed partial class MainViewModel
         {
             Session.Reset();
             _baseline = Session.Machine.Cpu.GetState();
+            ProgramLoaded?.Invoke();
         }
         return Session.CanRun;
     }

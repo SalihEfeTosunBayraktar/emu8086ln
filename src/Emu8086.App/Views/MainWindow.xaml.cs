@@ -157,9 +157,8 @@ public partial class MainWindow : Window, IDialogService
     {
         Screen.Invalidate();
         var cpu = _vm.Session.Machine.Cpu;
-        Hex.Segment = cpu.DS;
-        Hex.Offset = 0;
-        MemoryAddress.Text = $"{cpu.DS:X4}:0000";
+        // Open the memory view where the program starts.
+        SetMemoryView(cpu.CS, cpu.IP);
         _portLog.Clear();
         _printerBox?.Clear();
     }

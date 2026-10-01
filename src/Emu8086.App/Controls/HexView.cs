@@ -7,7 +7,7 @@ using Emu8086.App.Services;
 namespace Emu8086.App.Controls;
 
 /// <summary>
-/// Hex/ASCII dump of one 64 KB segment. Bytes changed since the previous refresh are highlighted;
+/// Hex/ASCII dump of one 64 KB segment. Bytes written by the last executed instruction are marked;
 /// click a byte and type hex digits to edit it while the program is paused.
 /// </summary>
 public sealed class HexView : FrameworkElement
@@ -18,7 +18,8 @@ public sealed class HexView : FrameworkElement
     private const double LeftPadding = 8;
 
     private byte[] _data = [];
-    private byte[] _previous = [];
+    private HashSet<int> _changed = new();
+    private object? _lastRecord;
     private int _rows;
     private int _selected = -1;
     private int _pendingNibble = -1;
@@ -60,7 +61,6 @@ public sealed class HexView : FrameworkElement
     private void ForceRefresh()
     {
         _lastVersion = -1;
-        _previous = [];
         Refresh();
     }
 
@@ -73,12 +73,15 @@ public sealed class HexView : FrameworkElement
         lock (session.Sync)
         {
             var memory = session.Machine.Memory;
-            if (memory.Version == _lastVersion && _data.Length == length) return;
+            var record = session.Machine.History.Last;
+            if (memory.Version == _lastVersion && _data.Length == length && ReferenceEquals(record, _lastRecord)) return;
             _lastVersion = memory.Version;
+            _lastRecord = record;
             var data = new byte[length];
             for (int i = 0; i < length; i++) data[i] = memory.Read8((ushort)Segment, (ushort)(Offset + i));
-            _previous = _data.Length == length ? _data : data;
             _data = data;
+            // Physical addresses whose value the last instruction really changed.
+            _changed = record == null ? new() : record.MemoryWrites.Where(w => w.OldValue != w.NewValue).Select(w => w.Address).ToHashSet();
         }
         InvalidateVisual();
     }
@@ -104,6 +107,7 @@ public sealed class HexView : FrameworkElement
         var muted = Res("Fg.Muted");
         var changed = Res("Changed");
         var selection = Res("Bg.Selected");
+        var mark = Res("ChangedMark");
 
         FormattedText Text(string s, Brush b) =>
             new(s, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, _typeface, FontSize, b, dpi);
@@ -122,7 +126,12 @@ public sealed class HexView : FrameworkElement
                 double x = HexColumnX(i);
                 if (index == _selected)
                     dc.DrawRoundedRectangle(selection, null, new Rect(x - 2, y - 1, _charWidth * 2 + 4, LineHeight - 2), 3, 3);
-                bool isChanged = _previous.Length == _data.Length && _previous[index] != b;
+                bool isChanged = _changed.Contains(Emu8086.Core.Cpu.Memory.Physical((ushort)Segment, (ushort)(rowOffset + i)));
+                if (isChanged)
+                {
+                    dc.DrawRoundedRectangle(mark, null, new Rect(x - 2, y - 1, _charWidth * 2 + 4, LineHeight - 2), 3, 3);
+                    dc.DrawRoundedRectangle(mark, null, new Rect(AsciiColumnX(i), y - 1, _charWidth, LineHeight - 2), 2, 2);
+                }
                 dc.DrawText(Text(b.ToString("X2"), isChanged ? changed : normal), new Point(x, y));
                 char c = b is >= 32 and < 127 ? (char)b : '.';
                 dc.DrawText(Text(c.ToString(), isChanged ? changed : muted), new Point(AsciiColumnX(i), y));
